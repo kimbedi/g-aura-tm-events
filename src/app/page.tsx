@@ -12,27 +12,7 @@ export default function Home() {
         <div className="absolute bottom-0 right-1/4 w-[40vw] h-[40vw] bg-neutral-800/50 rounded-full blur-[100px] mix-blend-screen" />
       </div>
 
-      {/* Navbar Placeholder */}
-      <nav className="fixed top-0 w-full z-50 bg-black/50 backdrop-blur-md border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="text-2xl font-bold tracking-tighter">
-            G-AURA <span className="text-yellow-500 font-light">TM EVENTS</span>
-          </div>
-          <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-neutral-300">
-            <a href="#" className="hover:text-white transition-colors">Événements</a>
-            <a href="#" className="hover:text-white transition-colors">Boutique Merch</a>
-            <a href="#" className="hover:text-white transition-colors">Galerie</a>
-          </div>
-          <div className="flex items-center space-x-4">
-            <button className="text-sm font-medium text-white px-4 py-2 hover:bg-white/5 rounded-full transition-colors">
-              Connexion
-            </button>
-            <button className="text-sm font-medium bg-white text-black px-6 py-2 rounded-full hover:bg-neutral-200 transition-colors">
-              Billetterie
-            </button>
-          </div>
-        </div>
-      </nav>
+
 
       {/* Hero Section */}
       <div className="relative z-10 max-w-7xl mx-auto px-6 pt-40 pb-24 min-h-[90vh] flex flex-col justify-center">
