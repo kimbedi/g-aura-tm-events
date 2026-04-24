@@ -14,8 +14,8 @@ export default function AdminDashboard() {
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
         {[
-          { label: "Revenu Brut (USD)", value: "$12,450", icon: DollarSign, color: "text-white" },
-          { label: "Commission (15%)", value: "$1,867.50", icon: Activity, color: "text-yellow-500" },
+          { label: "Revenu Total (USD)", value: "$12,450", icon: DollarSign, color: "text-white" },
+          { label: "Revenu Net (85%)", value: "$10,582.50", icon: Activity, color: "text-yellow-500" },
           { label: "Billets Vendus", value: "342", icon: Ticket, color: "text-blue-400" },
           { label: "En attente validation", value: "14", icon: Clock, color: "text-orange-400" }, // I will fix this missing import inline below
         ].map((stat, i) => (
@@ -34,23 +34,7 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* Section Commission Québec */}
-      <div className="bg-gradient-to-br from-yellow-500/10 to-transparent border border-yellow-500/20 rounded-3xl p-6 md:p-8 mb-10">
-        <h2 className="text-xl font-bold text-yellow-500 mb-2">Ledger Plateforme (Québec)</h2>
-        <p className="text-neutral-300 text-sm mb-6 max-w-2xl">
-          Ce tableau de bord isole vos 15% de commission sur chaque transaction. Vous pouvez marquer ces fonds comme "Transférés" une fois que le compte local (Kinshasa) vous a viré l'argent par banque ou crypto.
-        </p>
-        
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between bg-black/50 p-6 rounded-2xl border border-white/5">
-          <div>
-            <div className="text-sm text-neutral-400 mb-1">Solde actuel à percevoir</div>
-            <div className="text-4xl font-bold text-white">$1,867.50</div>
-          </div>
-          <button className="mt-4 md:mt-0 px-6 py-3 bg-white text-black font-semibold rounded-xl hover:bg-neutral-200 transition-colors w-full md:w-auto">
-            Demander un Payout
-          </button>
-        </div>
-      </div>
+
 
       {/* Activité récente */}
       <div>
@@ -72,7 +56,6 @@ export default function AdminDashboard() {
               </div>
               <div className="text-right">
                 <div className="font-bold text-sm">+$100.00</div>
-                <div className="text-xs text-yellow-500">+ $15.00 com</div>
               </div>
             </div>
           ))}
