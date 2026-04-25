@@ -16,6 +16,14 @@ export async function getMembers() {
 
 export async function updateMemberRole(userId: string, newRole: string) {
   const supabase = await createClient();
+  const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+  if (!currentUser) throw new Error("Non autorisé");
+
+  // Security: Don't allow changing your own role
+  if (currentUser.id === userId) {
+    throw new Error("Vous ne pouvez pas modifier votre propre rôle.");
+  }
 
   // Security: Don't allow changing a super_admin role
   const { data: target } = await supabase

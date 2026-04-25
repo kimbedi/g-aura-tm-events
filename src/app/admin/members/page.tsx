@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import { getMembers, updateMemberRole } from "@/app/actions/members";
 import { User, Shield, Check, Loader2, Search } from "lucide-react";
 import { motion } from "framer-motion";
+import { createClient } from "@/utils/supabase/client";
 
 export default function MembersPage() {
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     loadMembers();
@@ -17,6 +19,10 @@ export default function MembersPage() {
 
   async function loadMembers() {
     try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+
       const data = await getMembers();
       setMembers(data);
     } catch (e) {
@@ -86,7 +92,12 @@ export default function MembersPage() {
                         <User className="w-5 h-5" />
                       </div>
                       <div>
-                        <div className="font-bold text-sm">{member.full_name || "Sans nom"}</div>
+                        <div className="flex items-center space-x-2">
+                          <div className="font-bold text-sm">{member.full_name || "Sans nom"}</div>
+                          {member.id === currentUserId && (
+                            <span className="text-[8px] bg-white/10 text-white px-1.5 py-0.5 rounded uppercase">C'est vous</span>
+                          )}
+                        </div>
                         <div className="text-[10px] text-neutral-500 font-mono">{member.id}</div>
                       </div>
                     </div>
@@ -104,10 +115,10 @@ export default function MembersPage() {
                     <div className="flex items-center space-x-2">
                       <select 
                         value={member.role}
-                        disabled={updatingId === member.id || member.role === 'super_admin'}
+                        disabled={updatingId === member.id || member.role === 'super_admin' || member.id === currentUserId}
                         onChange={(e) => handleRoleChange(member.id, e.target.value)}
                         className={`bg-black border border-white/10 rounded-lg text-xs px-2 py-1 focus:outline-none focus:border-yellow-500 ${
-                          member.role === 'super_admin' ? 'opacity-30 cursor-not-allowed' : 'opacity-100'
+                          (member.role === 'super_admin' || member.id === currentUserId) ? 'opacity-30 cursor-not-allowed' : 'opacity-100'
                         }`}
                       >
                         <option value="user">Utilisateur</option>
