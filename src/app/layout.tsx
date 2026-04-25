@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { createClient } from "@/utils/supabase/server";
-import NavbarWrapper from "@/components/NavbarWrapper";
+import NavbarWrapper from "../components/NavbarWrapper";
 
 export const dynamic = "force-dynamic";
 

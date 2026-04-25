@@ -2,14 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { getEvents, createEvent, deleteEvent } from "@/app/actions/events";
-import { Plus, Calendar, MapPin, Trash2, Image as ImageIcon, Loader2, X, Star } from "lucide-react";
+import { Plus, Calendar, MapPin, Trash2, Image as ImageIcon, Loader2, X, Star, Pencil } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { updateEvent } from "@/app/actions/events";
 
 export default function AdminEventsPage() {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<any>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Form State
   const [newCategories, setNewCategories] = useState([{ name: "Standard", price_usd: 20, capacity: 100 }]);
@@ -29,6 +32,14 @@ export default function AdminEventsPage() {
     }
   }
 
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsSubmitting(true);
@@ -36,8 +47,14 @@ export default function AdminEventsPage() {
     formData.append("categories", JSON.stringify(newCategories));
     
     try {
-      await createEvent(formData);
+      if (editingEvent) {
+        await updateEvent(editingEvent.id, formData);
+      } else {
+        await createEvent(formData);
+      }
       setIsModalOpen(false);
+      setEditingEvent(null);
+      setPreviewUrl(null);
       setNewCategories([{ name: "Standard", price_usd: 20, capacity: 100 }]);
       await loadEvents();
     } catch (err: any) {
@@ -45,6 +62,13 @@ export default function AdminEventsPage() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  function handleEdit(event: any) {
+    setEditingEvent(event);
+    setPreviewUrl(event.image_url);
+    setNewCategories(event.ticket_categories || []);
+    setIsModalOpen(true);
   }
 
   async function handleDelete(id: string) {
@@ -65,7 +89,11 @@ export default function AdminEventsPage() {
           <p className="text-neutral-400 text-sm">Gérez la programmation et la billetterie.</p>
         </div>
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setEditingEvent(null);
+            setNewCategories([{ name: "Standard", price_usd: 20, capacity: 100 }]);
+            setIsModalOpen(true);
+          }}
           className="flex items-center justify-center space-x-2 bg-yellow-500 text-black font-bold px-6 py-3 rounded-2xl hover:bg-yellow-400 transition-colors"
         >
           <Plus className="w-5 h-5" />
@@ -116,19 +144,27 @@ export default function AdminEventsPage() {
                 <div className="text-xs text-neutral-500">
                   {event.ticket_categories?.length || 0} Catégories
                 </div>
-                <button 
-                  onClick={() => handleDelete(event.id)}
-                  className="p-2 text-neutral-500 hover:text-red-500 transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button 
+                    onClick={() => handleEdit(event)}
+                    className="p-2 text-neutral-500 hover:text-yellow-500 transition-colors"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(event.id)}
+                    className="p-2 text-neutral-500 hover:text-red-500 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>
         ))}
       </div>
 
-      {/* Creation Modal */}
+      {/* Modal */}
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -152,42 +188,83 @@ export default function AdminEventsPage() {
                 <X className="w-6 h-6" />
               </button>
 
-              <h2 className="text-2xl font-bold mb-8">Nouvel Événement</h2>
+              <h2 className="text-2xl font-bold mb-8">
+                {editingEvent ? "Modifier l'Événement" : "Nouvel Événement"}
+              </h2>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div>
                       <label className="block text-xs font-bold text-neutral-500 uppercase mb-2">Titre</label>
-                      <input name="title" required className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-yellow-500 outline-none" />
+                      <input 
+                        name="title" 
+                        required 
+                        defaultValue={editingEvent?.title}
+                        className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-yellow-500 outline-none" 
+                      />
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-neutral-500 uppercase mb-2">Lieu</label>
-                      <input name="location" required className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-yellow-500 outline-none" />
+                      <input 
+                        name="location" 
+                        required 
+                        defaultValue={editingEvent?.location}
+                        className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-yellow-500 outline-none" 
+                      />
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-neutral-500 uppercase mb-2">Date et Heure</label>
-                      <input name="dateTime" type="datetime-local" required className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-yellow-500 outline-none text-white" />
+                      <input 
+                        name="dateTime" 
+                        type="datetime-local" 
+                        required 
+                        defaultValue={editingEvent?.date_time ? new Date(editingEvent.date_time).toISOString().slice(0, 16) : ""}
+                        className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-yellow-500 outline-none text-white" 
+                      />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-neutral-500 uppercase mb-2">Flyer de l'événement</label>
+                    <label className="block text-xs font-bold text-neutral-500 uppercase mb-2">Flyer (Laissez vide pour conserver)</label>
                     <div className="relative group aspect-square rounded-2xl bg-black border border-white/10 flex flex-col items-center justify-center text-neutral-500 cursor-pointer overflow-hidden">
-                      <input type="file" name="flyer" className="absolute inset-0 opacity-0 cursor-pointer z-10" />
-                      <ImageIcon className="w-10 h-10 mb-2 group-hover:text-yellow-500 transition-colors" />
-                      <span className="text-[10px]">Cliquer pour uploader</span>
+                      {previewUrl && (
+                        <img src={previewUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                      )}
+                      <input 
+                        type="file" 
+                        name="flyer" 
+                        onChange={handleImageChange}
+                        className="absolute inset-0 opacity-0 cursor-pointer z-10" 
+                      />
+                      {!previewUrl && (
+                        <>
+                          <ImageIcon className="w-10 h-10 mb-2 group-hover:text-yellow-500 transition-colors" />
+                          <span className="text-[10px]">Cliquer pour changer</span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-neutral-500 uppercase mb-2">Description</label>
-                  <textarea name="description" rows={3} className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-yellow-500 outline-none" />
+                  <textarea 
+                    name="description" 
+                    rows={3} 
+                    defaultValue={editingEvent?.description}
+                    className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-yellow-500 outline-none" 
+                  />
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  <input type="checkbox" name="isPremium" value="true" className="w-4 h-4 accent-yellow-500" />
+                  <input 
+                    type="checkbox" 
+                    name="isPremium" 
+                    value="true" 
+                    defaultChecked={editingEvent?.is_premium}
+                    className="w-4 h-4 accent-yellow-500" 
+                  />
                   <label className="text-sm text-neutral-400 font-medium">Événement Premium (G-Aura Exclusive)</label>
                 </div>
 
@@ -204,6 +281,12 @@ export default function AdminEventsPage() {
                   </div>
                   
                   <div className="space-y-3">
+                    <div className="flex items-center space-x-3 px-1 text-[9px] font-black text-neutral-600 uppercase tracking-widest">
+                      <div className="flex-1">Nom de la catégorie</div>
+                      <div className="w-20">Prix ($)</div>
+                      <div className="w-20">Places</div>
+                      {newCategories.length > 1 && <div className="w-4"></div>}
+                    </div>
                     {newCategories.map((cat, index) => (
                       <div key={index} className="flex items-center space-x-3">
                         <input 
@@ -255,9 +338,9 @@ export default function AdminEventsPage() {
                 <button 
                   type="submit" 
                   disabled={isSubmitting}
-                  className="w-full bg-white text-black font-black py-4 rounded-2xl hover:bg-yellow-500 transition-colors flex items-center justify-center disabled:opacity-50"
+                  className="w-full bg-yellow-500 text-black font-black py-4 rounded-2xl hover:bg-yellow-400 transition-colors flex items-center justify-center disabled:opacity-50"
                 >
-                  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Créer l'Événement"}
+                  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : editingEvent ? "Enregistrer les modifications" : "Créer l'Événement"}
                 </button>
               </form>
             </motion.div>

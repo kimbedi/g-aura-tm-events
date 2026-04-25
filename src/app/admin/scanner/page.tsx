@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { scanTicket } from "@/app/actions/scanner";
-import { QrCode, CheckCircle2, XCircle, Loader2, User, Ticket, ShieldCheck } from "lucide-react";
+import { QrCode, CheckCircle2, XCircle, Loader2, User, Ticket, ShieldCheck, Smartphone, DollarSign } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function ScannerPage() {
   const [qrInput, setQrInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   async function handleScan(e: React.FormEvent) {
     e.preventDefault();
@@ -16,6 +17,7 @@ export default function ScannerPage() {
 
     setLoading(true);
     setResult(null);
+    setShowSuccess(false);
     try {
       const data = await scanTicket(qrInput);
       setResult(data);
@@ -27,8 +29,47 @@ export default function ScannerPage() {
     }
   }
 
+  async function handleConfirm() {
+    setLoading(true);
+    try {
+      const { confirmEntry } = await import("@/app/actions/scanner");
+      await confirmEntry(result.ticketId);
+      setResult(null);
+      setShowSuccess(true);
+      // Reset success after 3 seconds
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (e) {
+      alert("Erreur validation");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 max-w-md mx-auto">
+    <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 max-w-md mx-auto relative">
+      <AnimatePresence>
+        {showSuccess && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-green-500 flex flex-col items-center justify-center text-black p-10"
+          >
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", damping: 12 }}
+            >
+              <CheckCircle2 className="w-40 h-40 mb-8" />
+            </motion.div>
+            <h2 className="text-5xl font-black text-center uppercase tracking-tighter leading-none">
+              Entrée <br/> Validée !
+            </h2>
+            <p className="mt-6 font-bold text-lg opacity-80 italic">Suivant {"->"}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="text-center mb-10">
         <div className="w-20 h-20 bg-yellow-500/10 rounded-3xl flex items-center justify-center mx-auto mb-4 border border-yellow-500/20">
           <QrCode className="w-10 h-10 text-yellow-500" />
@@ -115,24 +156,13 @@ export default function ScannerPage() {
                 </div>
 
                 <button 
-                  onClick={async () => {
-                    setLoading(true);
-                    try {
-                      const { confirmEntry } = await import("@/app/actions/scanner");
-                      await confirmEntry(result.ticketId);
-                      setResult(null);
-                      alert("ENTRÉE VALIDÉE !");
-                    } catch (e) {
-                      alert("Erreur validation");
-                    } finally {
-                      setLoading(false);
-                    }
-                  }}
+                  onClick={handleConfirm}
+                  disabled={loading}
                   className={`w-full mt-8 py-5 rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 ${
                     result.paymentMethod === 'cash' ? 'bg-orange-500 text-white' : 'bg-blue-500 text-white'
                   }`}
                 >
-                  Confirmer et Laisser Passer
+                  {loading ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : "Confirmer et Laisser Passer"}
                 </button>
               </>
             ) : (
@@ -161,4 +191,4 @@ export default function ScannerPage() {
   );
 }
 
-import { Smartphone, DollarSign } from "lucide-react";
+
