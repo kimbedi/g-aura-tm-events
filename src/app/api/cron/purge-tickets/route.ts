@@ -1,11 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/utils/supabase/admin";
 import { NextResponse } from "next/server";
 
-// Using Admin Service Role Key since this is a Cron Job (Server-to-Server)
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // Needs to be added to .env
-);
+export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   // Optionnel: Vérifier un token secret Vercel Cron pour la sécurité
@@ -15,6 +11,8 @@ export async function GET(request: Request) {
   }
 
   try {
+    const supabase = createAdminClient();
+    
     // Appel de la fonction Supabase pour purger les billets
     const { error } = await supabase.rpc("delete_expired_tickets");
 
