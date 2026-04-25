@@ -124,7 +124,7 @@ export default function MembersPage() {
                         <option value="user">Utilisateur</option>
                         <option value="scanner">Scanner</option>
                         <option value="manager">Manager</option>
-                        <option value="admin">Admin</option>
+                        {member.role === 'admin' && <option value="admin">Admin</option>}
                         {member.role === 'super_admin' && <option value="super_admin">DevTool</option>}
                       </select>
                       {updatingId === member.id && <Loader2 className="w-3 h-3 animate-spin text-yellow-500" />}
