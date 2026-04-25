@@ -6,9 +6,9 @@ import { Copy, CheckCheck, ExternalLink } from "lucide-react";
 const KOHO_DETAILS = {
   beneficiaryName: "G-AURA TM EVENTS",
   bankName: "Peoples Trust Company (KOHO)",
-  institution: "621", // À remplacer par ton vrai numéro d'institution Koho
-  transit: "00001", // À remplacer par ton vrai numéro de transit Koho
-  account: "VOTRE_NUMERO_COMPTE_KOHO", // À remplacer
+  institution: "621",
+  transit: "16001",
+  account: "218157006451",
   country: "Canada",
   currency: "CAD",
 };
