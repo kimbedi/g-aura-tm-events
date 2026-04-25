@@ -42,22 +42,22 @@ export default function Navbar({ user, profile }: NavbarProps) {
 
           {user ? (
             <div className="flex items-center space-x-3">
-              {isAdmin && (
-                <Link
-                  href={profile?.role === "super_admin" ? "/super-admin" : "/admin"}
-                  className="flex items-center space-x-2 text-sm font-medium text-yellow-500 hover:text-yellow-400 px-4 py-2 hover:bg-yellow-500/10 rounded-full transition-colors"
-                >
-                  <LayoutDashboard className="w-4 h-4" />
-                  <span>Dashboard</span>
-                </Link>
-              )}
+              {/* Golden pill button - links to dashboard if admin, my-tickets if user */}
+              <Link
+                href={isAdmin ? (profile?.role === "super_admin" ? "/super-admin" : "/admin") : "/my-tickets"}
+                className="flex items-center space-x-2 text-sm font-medium bg-gradient-to-r from-yellow-500 to-yellow-600 text-black px-5 py-2 rounded-full hover:opacity-90 transition-opacity"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                <span>{isAdmin ? "Dashboard" : "Mon Compte"}</span>
+              </Link>
+              {/* Small discreet logout */}
               <form action={logout}>
                 <button
                   type="submit"
-                  className="flex items-center space-x-2 text-sm font-medium text-neutral-400 hover:text-red-400 px-4 py-2 hover:bg-red-400/10 rounded-full transition-colors"
+                  title="Déconnexion"
+                  className="text-neutral-500 hover:text-red-400 transition-colors p-2 rounded-full hover:bg-red-400/10"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span>Déconnexion</span>
                 </button>
               </form>
             </div>
