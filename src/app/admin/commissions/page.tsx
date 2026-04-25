@@ -1,7 +1,8 @@
-import { getCommissions } from "@/app/actions/commissions";
+import { getCommissions, getDebtLimit, checkPlatformLockStatus } from "@/app/actions/commissions";
 import { createClient } from "@/utils/supabase/server";
-import { DollarSign, Landmark, ArrowRightLeft, ShieldCheck } from "lucide-react";
+import { DollarSign, Landmark, ArrowRightLeft, ShieldCheck, Lock, Unlock } from "lucide-react";
 import { redirect } from "next/navigation";
+import CommissionsControls from "./CommissionsControls";
 
 // This page lives under /admin so it inherits the admin sidebar/navigation,
 // but only super_admin should see commission/Koho payout data.
@@ -18,21 +19,32 @@ export default async function CommissionsLedgerPage() {
     redirect("/admin");
   }
 
-  const { totalDue, totalPaid, history } = await getCommissions();
+  const [{ totalDue, totalPaid, history }, debtLimit, lockStatus] = await Promise.all([
+    getCommissions(),
+    getDebtLimit(),
+    checkPlatformLockStatus(),
+  ]);
 
   return (
-    <div className="min-h-screen bg-black text-white p-6 md:p-10">
+    <div className="bg-black text-white p-6 md:p-10">
       <div className="max-w-6xl mx-auto">
-        <header className="mb-10 flex items-center justify-between">
+        <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold mb-2 flex items-center">
               <ShieldCheck className="w-8 h-8 mr-3 text-yellow-500" />
-              G-AURA <span className="text-yellow-500 ml-2">SUPER ADMIN</span>
+              Commissions <span className="text-yellow-500 ml-2">G-Aura</span>
             </h1>
-            <p className="text-neutral-400">Ledger de la Plateforme & Reversements Québec (Compte Koho)</p>
+            <p className="text-neutral-400">Ledger de la plateforme & reversements Québec (compte Koho).</p>
           </div>
-          <div className="px-4 py-2 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 rounded-full text-sm font-bold">
-            Split 15% Actif
+
+          {/* Lock status badge */}
+          <div className={`px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 border ${
+            lockStatus.isLocked
+              ? "bg-red-500/10 border-red-500/30 text-red-400"
+              : "bg-green-500/10 border-green-500/30 text-green-400"
+          }`}>
+            {lockStatus.isLocked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+            {lockStatus.isLocked ? "Plateforme verrouillée" : "Plateforme active"}
           </div>
         </header>
 
@@ -46,10 +58,9 @@ export default async function CommissionsLedgerPage() {
               <h2 className="text-lg font-medium text-neutral-300">Solde à recevoir (Koho)</h2>
             </div>
             <div className="text-5xl font-black text-white mb-2">${totalDue.toFixed(2)}</div>
-            <p className="text-sm text-neutral-400">Ce montant est actuellement sur le compte Airtel/M-Pesa du client et vous est dû.</p>
-            <button className="mt-6 w-full py-4 bg-yellow-500 text-black font-bold rounded-xl hover:bg-yellow-400 transition-colors">
-              Générer la facture de reversement
-            </button>
+            <p className="text-sm text-neutral-400">
+              Ce montant est actuellement sur le compte Airtel/M-Pesa du client et vous est dû.
+            </p>
           </div>
 
           {/* Box 2: Paid (Sent to Koho) */}
@@ -65,8 +76,15 @@ export default async function CommissionsLedgerPage() {
           </div>
         </div>
 
+        {/* Controls (Client Component for interactivity) */}
+        <CommissionsControls
+          debtLimit={debtLimit}
+          totalDue={totalDue}
+          isLocked={lockStatus.isLocked}
+        />
+
         {/* Historique du Ledger */}
-        <div className="bg-neutral-900 border border-white/5 rounded-3xl p-8">
+        <div className="bg-neutral-900 border border-white/5 rounded-3xl p-8 mt-8">
           <h2 className="text-xl font-bold mb-6 flex items-center">
             <ArrowRightLeft className="w-5 h-5 mr-3 text-neutral-400" />
             Historique des Transactions (Ledger)
@@ -94,8 +112,8 @@ export default async function CommissionsLedgerPage() {
                 )}
                 {history?.map((item: any) => (
                   <tr key={item.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                    <td className="py-4 text-neutral-300">{new Date(item.created_at).toLocaleDateString()}</td>
-                    <td className="py-4 font-mono text-xs text-neutral-500">{item.order_id.substring(0,8)}...</td>
+                    <td className="py-4 text-neutral-300">{new Date(item.created_at).toLocaleDateString('fr-FR', { timeZone: 'UTC' })}</td>
+                    <td className="py-4 font-mono text-xs text-neutral-500">{item.order_id?.substring(0, 8)}...</td>
                     <td className="py-4 font-bold text-neutral-400">${item.gross_amount_usd}</td>
                     <td className="py-4 font-bold text-neutral-300">${item.net_amount_usd}</td>
                     <td className="py-4 font-black text-yellow-500">+${item.commission_amount_usd}</td>
