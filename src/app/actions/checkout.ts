@@ -1,52 +1,62 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/admin";
 import { revalidatePath } from "next/cache";
 
 export async function submitOrder(formData: FormData) {
   const supabase = await createClient();
+  const adminSupabase = createAdminClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
   // Extract data from form
   const eventId = formData.get("eventId") as string;
-  const method = formData.get("method") as string;
+  const paymentMethod = formData.get("paymentMethod") as string;
   const refCode = formData.get("refCode") as string;
   const customerName = formData.get("customerName") as string;
   const customerPhone = formData.get("customerPhone") as string;
-
-  // In a real app, we'd fetch the ticket category and calculate price securely on the server
-  // For this MVP, we assume a static $100 VIP ticket
   
-  // Insert into orders table
-  const { data, error } = await supabase.from("orders").insert({
+  // 1. Get the first category for this event (assuming one for now or taking the default)
+  const { data: categories } = await adminSupabase
+    .from("ticket_categories")
+    .select("*")
+    .eq("event_id", eventId)
+    .limit(1);
+
+  const category = categories?.[0];
+  const price = category?.price_usd || 0;
+
+  // 2. Insert into orders table
+  const { data: orderData, error: orderError } = await adminSupabase.from("orders").insert({
+    user_id: user?.id || null,
     event_id: eventId,
+    ticket_category_id: category?.id,
     customer_name: customerName,
     customer_phone: customerPhone,
-    payment_method: method,
+    payment_method: paymentMethod,
     payment_reference: refCode,
-    total_price_usd: 100.00,
-    quantity: 1
-    // ticket_category_id: ...
-  }).select();
+    total_price_usd: price,
+    quantity: 1,
+    status: 'pending_validation'
+  }).select().single();
 
-  if (error || !data) {
-    console.error("Order insertion error:", error);
+  if (orderError || !orderData) {
+    console.error("Order insertion error:", orderError);
     return { error: "Failed to submit order" };
   }
 
-  const newOrder = data[0];
+  // 3. Generate Digital Ticket IMMEDIATELY
+  const qrHash = `${orderData.id}-${Math.random().toString(36).substring(7)}`;
 
-  // 2. Generate Digital Ticket IMMEDIATELY (pending validation)
-  const crypto = require("crypto");
-  const qrHash = crypto.randomBytes(16).toString("hex");
-
-  const { error: ticketError } = await supabase
+  const { error: ticketError } = await adminSupabase
     .from("issued_tickets")
     .insert({
-      order_id: newOrder.id,
+      order_id: orderData.id,
       event_id: eventId,
+      ticket_category_id: category?.id,
       owner_name: customerName,
       qr_code_hash: qrHash,
-      status: "pending_validation" // Important: Needs validation at the door
+      status: "available" 
     });
 
   if (ticketError) {
@@ -54,6 +64,6 @@ export async function submitOrder(formData: FormData) {
     return { error: "Failed to generate ticket" };
   }
 
-  revalidatePath("/admin/payments");
+  revalidatePath("/tickets");
   return { success: true, qrHash };
 }

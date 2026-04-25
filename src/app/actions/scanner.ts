@@ -11,10 +11,10 @@ export async function scanTicket(qrHash: string) {
 
   if (!user) throw new Error("Authentification requise");
 
-  // 1. Chercher le billet
+  // 1. Chercher le billet avec les infos de la commande
   const { data: ticket, error } = await adminSupabase
     .from("issued_tickets")
-    .select("*, events(*), ticket_categories(*)")
+    .select("*, events(*), ticket_categories(*), orders(*)")
     .eq("qr_code_hash", qrHash)
     .single();
 
@@ -27,27 +27,58 @@ export async function scanTicket(qrHash: string) {
       message: "BILLET DÉJÀ UTILISÉ", 
       scannedAt: ticket.scanned_at,
       event: ticket.events.title,
-      owner: ticket.owner_name
+      owner: ticket.owner_name,
+      paymentMethod: ticket.orders?.payment_method,
+      paymentRef: ticket.orders?.payment_reference
     };
   }
 
-  // 3. Marquer comme utilisé
-  const { error: updateError } = await adminSupabase
+  // On ne marque pas comme scanné ici, on laisse l'agent le faire après vérification
+  return { 
+    success: true, 
+    message: "VÉRIFICATION REQUISE", 
+    ticketId: ticket.id,
+    owner: ticket.owner_name,
+    category: ticket.ticket_categories.name,
+    event: ticket.events.title,
+    paymentMethod: ticket.orders?.payment_method,
+    paymentRef: ticket.orders?.payment_reference,
+    amount: ticket.orders?.total_price_usd
+  };
+}
+
+export async function confirmEntry(ticketId: string) {
+  const adminSupabase = createAdminClient();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Authentification requise");
+
+  // Marquer le billet comme scanné
+  const { data: ticket } = await adminSupabase
+    .from("issued_tickets")
+    .select("order_id")
+    .eq("id", ticketId)
+    .single();
+
+  const { error } = await adminSupabase
     .from("issued_tickets")
     .update({ 
       status: 'scanned',
       scanned_at: new Date().toISOString(),
       scanned_by: user.id
     })
-    .eq("id", ticket.id);
+    .eq("id", ticketId);
 
-  if (updateError) throw new Error("Erreur lors du scan");
+  if (error) throw new Error("Erreur validation");
 
-  return { 
-    success: true, 
-    message: "ACCÈS VALIDE", 
-    owner: ticket.owner_name,
-    category: ticket.ticket_categories.name,
-    event: ticket.events.title
-  };
+  // Marquer la commande comme complétée aussi
+  if (ticket?.order_id) {
+    await adminSupabase
+      .from("orders")
+      .update({ status: 'completed', validated_at: new Date().toISOString() })
+      .eq("id", ticket.order_id);
+  }
+
+  return { success: true };
 }

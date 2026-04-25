@@ -94,6 +94,17 @@ export default function MyTicketsPage() {
                           <MapPin className="w-4 h-4 mr-3 text-yellow-500" />
                           {ticket.events?.location}
                         </div>
+                        
+                        {/* Infos de paiement pour l'agent */}
+                        <div className="mt-6 p-4 bg-white/5 rounded-2xl border border-white/5">
+                          <div className="text-[10px] text-neutral-500 uppercase font-black mb-2">Mode de paiement</div>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-bold uppercase text-yellow-500">{ticket.orders?.payment_method}</span>
+                            {ticket.orders?.payment_reference && (
+                              <span className="text-sm font-mono text-white bg-white/10 px-2 py-0.5 rounded">Ref: {ticket.orders.payment_reference}</span>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
 
