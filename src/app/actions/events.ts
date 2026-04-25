@@ -14,6 +14,30 @@ export async function getEvents() {
   return data;
 }
 
+export async function getPublishedEvents() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("events")
+    .select("*, ticket_categories(*)")
+    .eq("is_published", true)
+    .order("date_time", { ascending: true });
+    
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function getEventById(id: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("events")
+    .select("*, ticket_categories(*)")
+    .eq("id", id)
+    .single();
+    
+  if (error) return null;
+  return data;
+}
+
 export async function createEvent(formData: FormData) {
   const supabase = await createClient();
   

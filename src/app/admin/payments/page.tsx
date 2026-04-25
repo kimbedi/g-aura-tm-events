@@ -1,84 +1,132 @@
+"use client";
 
-import { ShieldCheck, XCircle, Search, Clock } from "lucide-react";
-import { getPendingOrders, validateOrder } from "@/app/actions/admin";
-import { revalidatePath } from "next/cache";
+import { useEffect, useState } from "react";
+import { getPendingOrders } from "@/app/actions/admin";
+import { validateOrder, rejectOrder } from "@/app/actions/orders";
+import { Check, X, Clock, DollarSign, User, Loader2, Search } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
-export default async function PaymentsValidationPage() {
-  const pendingOrders = await getPendingOrders();
+export default function AdminPaymentsPage() {
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
-  const handleValidate = async (formData: FormData) => {
-    "use server";
-    const id = formData.get("orderId") as string;
-    await validateOrder(id);
-    revalidatePath("/admin/payments");
-  };
+  useEffect(() => {
+    loadOrders();
+  }, []);
+
+  async function loadOrders() {
+    try {
+      const data = await getPendingOrders();
+      setOrders(data || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleValidate(id: string) {
+    if (!confirm("Confirmer la réception du paiement ?")) return;
+    setProcessingId(id);
+    try {
+      await validateOrder(id);
+      await loadOrders();
+    } catch (e) {
+      alert("Erreur lors de la validation");
+    } finally {
+      setProcessingId(null);
+    }
+  }
+
+  async function handleReject(id: string) {
+    if (!confirm("Rejeter cette commande ?")) return;
+    setProcessingId(id);
+    try {
+      await rejectOrder(id);
+      await loadOrders();
+    } catch (e) {
+      alert("Erreur lors du rejet");
+    } finally {
+      setProcessingId(null);
+    }
+  }
 
   return (
-    <div className="p-6 md:p-10 max-w-5xl mx-auto">
-      <header className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2 flex items-center">
-          <Clock className="w-6 h-6 mr-3 text-yellow-500" />
-          Validation des Paiements
-        </h1>
-        <p className="text-neutral-400 text-sm">
-          Vérifiez ces numéros de référence sur vos téléphones (M-Pesa, Airtel) et validez pour émettre les billets.
-        </p>
+    <div className="p-6 md:p-10 max-w-7xl mx-auto">
+      <header className="mb-10">
+        <h1 className="text-3xl font-bold mb-2 tracking-tighter">Paiements à Valider</h1>
+        <p className="text-neutral-400 text-sm">Vérifiez les références Mobile Money et générez les tickets.</p>
       </header>
 
-      <div className="relative mb-8">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
-        <input 
-          type="text" 
-          placeholder="Rechercher une référence de transaction..." 
-          className="w-full bg-neutral-900 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-yellow-500"
-        />
-      </div>
-
-      <div className="space-y-4">
-          {(!pendingOrders || pendingOrders.length === 0) && (
-            <div className="text-center py-20 text-neutral-500">
-              Aucun paiement en attente. Beau travail !
-            </div>
-          )}
-          {pendingOrders && pendingOrders.map((p: any) => (
-            <div
-              key={p.id}
-              className="bg-neutral-900 border border-white/5 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
-            >
-              <div className="flex-1">
-                <div className="flex items-center space-x-3 mb-2">
-                  <span className="bg-yellow-500/20 text-yellow-500 text-xs font-bold px-2 py-1 rounded uppercase">
-                    {p.payment_method}
-                  </span>
-                  <span className="text-sm text-neutral-400">
-                    {new Date(p.created_at).toLocaleString('fr-FR')}
-                  </span>
-                </div>
-                <div className="text-lg font-bold text-white mb-1">
-                  Réf: <span className="font-mono text-yellow-500">{p.payment_reference || "N/A"}</span>
-                </div>
-                <div className="text-sm text-neutral-300">
-                  {p.customer_name} a envoyé <span className="font-bold">{p.total_price_usd} USD</span> pour {p.events?.title}
-                </div>
-              </div>
-
-              <div className="flex w-full md:w-auto items-center space-x-3 pt-4 md:pt-0 border-t border-white/5 md:border-t-0">
-                <form action={handleValidate} className="flex-1 md:flex-none">
-                  <input type="hidden" name="orderId" value={p.id} />
-                  <button 
-                    type="submit"
-                    className="w-full flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-black px-6 py-3 rounded-xl font-bold transition-colors"
-                  >
-                    <ShieldCheck className="w-5 h-5" />
-                    <span>Valider</span>
-                  </button>
-                </form>
-                <button className="flex items-center justify-center w-12 h-12 bg-neutral-800 hover:bg-red-500/20 hover:text-red-500 text-neutral-400 rounded-xl transition-colors">
-                  <XCircle className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-          ))}
+      <div className="bg-neutral-900 border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-white/5 text-[10px] uppercase text-neutral-500 font-black tracking-widest">
+                <th className="px-6 py-4">Client / Référence</th>
+                <th className="px-6 py-4">Détails Commande</th>
+                <th className="px-6 py-4">Total</th>
+                <th className="px-6 py-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-20 text-center">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-yellow-500" />
+                  </td>
+                </tr>
+              ) : orders.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-20 text-center text-neutral-500">
+                    Aucun paiement en attente.
+                  </td>
+                </tr>
+              ) : orders.map((order) => (
+                <tr key={order.id} className="hover:bg-white/5 transition-colors group">
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col">
+                      <span className="font-bold text-sm">{order.customer_name}</span>
+                      <span className="text-[10px] text-yellow-500 font-mono mt-1 bg-yellow-500/10 px-2 py-0.5 rounded-full w-fit uppercase">
+                        Ref: {order.payment_reference || "N/A"}
+                      </span>
+                      <span className="text-[10px] text-neutral-500 mt-1 italic">{order.customer_phone}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-xs">
+                      <div className="text-white font-medium">{order.events?.title}</div>
+                      <div className="text-neutral-500">{order.quantity}x {order.ticket_categories?.name}</div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm font-bold text-white">${order.total_price_usd.toFixed(2)}</div>
+                    <div className="text-[10px] text-neutral-500 uppercase">{order.payment_method}</div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center space-x-2">
+                      <button 
+                        onClick={() => handleValidate(order.id)}
+                        disabled={processingId === order.id}
+                        className="bg-green-500 hover:bg-green-400 text-black p-2 rounded-xl transition-colors disabled:opacity-50"
+                      >
+                        {processingId === order.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                      </button>
+                      <button 
+                        onClick={() => handleReject(order.id)}
+                        disabled={processingId === order.id}
+                        className="bg-neutral-800 hover:bg-red-500 hover:text-white text-neutral-400 p-2 rounded-xl transition-colors disabled:opacity-50"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
