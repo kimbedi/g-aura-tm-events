@@ -62,3 +62,59 @@ export async function validateOrder(orderId: string) {
   revalidatePath("/admin/payments");
   return { success: true, qrHash };
 }
+
+export async function getAdminStats() {
+  const supabase = await createClient();
+
+  // 1. Total Completed Revenue (CDF)
+  const { data: completedOrders } = await supabase
+    .from("orders")
+    .select("total_price_usd")
+    .eq("status", "completed");
+
+  const totalRevenue = completedOrders?.reduce((acc, order) => acc + Number(order.total_price_usd || 0), 0) || 0;
+
+  // 2. Total Tickets Sold vs Total Scanned
+  const { data: tickets } = await supabase
+    .from("issued_tickets")
+    .select("status");
+
+  const totalSold = tickets?.length || 0;
+  const totalScanned = tickets?.filter(t => t.status === 'scanned').length || 0;
+
+  // 3. Stats by Event
+  const { data: eventStats } = await supabase
+    .from("events")
+    .select(`
+      id,
+      title,
+      orders (
+        total_price_usd,
+        status
+      ),
+      issued_tickets (
+        status
+      )
+    `);
+
+  const formattedEventStats = eventStats?.map(event => {
+    const revenue = event.orders
+      ?.filter((o: any) => o.status === 'completed')
+      .reduce((acc: number, o: any) => acc + Number(o.total_price_usd || 0), 0) || 0;
+    
+    return {
+      id: event.id,
+      title: event.title,
+      revenue,
+      sold: event.issued_tickets?.length || 0,
+      scanned: event.issued_tickets?.filter((t: any) => t.status === 'scanned').length || 0
+    };
+  }) || [];
+
+  return {
+    totalRevenue,
+    totalSold,
+    totalScanned,
+    eventStats: formattedEventStats
+  };
+}

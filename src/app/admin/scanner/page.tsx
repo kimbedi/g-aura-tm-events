@@ -5,28 +5,37 @@ import { scanTicket } from "@/app/actions/scanner";
 import { QrCode, CheckCircle2, XCircle, Loader2, User, Ticket, ShieldCheck, Smartphone, DollarSign } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+import QRScanner from "@/components/scanner/QRScanner";
+
 export default function ScannerPage() {
   const [qrInput, setQrInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [scanMode, setScanMode] = useState<'camera' | 'manual'>('camera');
 
-  async function handleScan(e: React.FormEvent) {
-    e.preventDefault();
-    if (!qrInput) return;
-
+  async function performScan(code: string) {
+    if (!code) return;
+    console.log("Code scanné reçu :", code);
     setLoading(true);
     setResult(null);
     setShowSuccess(false);
     try {
-      const data = await scanTicket(qrInput);
+      const data = await scanTicket(code);
+      console.log("Résultat du scan :", data);
       setResult(data);
       setQrInput("");
     } catch (err: any) {
-      setResult({ success: false, message: err.message });
+      console.error("Erreur de scan :", err);
+      setResult({ success: false, message: err.message || "Erreur de connexion" });
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleManualSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    await performScan(qrInput);
   }
 
   async function handleConfirm() {
@@ -46,7 +55,7 @@ export default function ScannerPage() {
   }
 
   return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 max-w-md mx-auto relative">
+    <div className="min-h-[80vh] flex flex-col items-center justify-start p-6 max-w-md mx-auto relative pt-12">
       <AnimatePresence>
         {showSuccess && (
           <motion.div 
@@ -70,43 +79,97 @@ export default function ScannerPage() {
         )}
       </AnimatePresence>
 
-      <div className="text-center mb-10">
-        <div className="w-20 h-20 bg-yellow-500/10 rounded-3xl flex items-center justify-center mx-auto mb-4 border border-yellow-500/20">
-          <QrCode className="w-10 h-10 text-yellow-500" />
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-black tracking-tighter uppercase mb-6">Scanner d'entrée</h1>
+        
+        {/* Toggle de Mode Premium */}
+        <div className="inline-flex bg-neutral-900/50 backdrop-blur-xl p-1 rounded-2xl border border-white/10 shadow-2xl">
+          <button 
+            onClick={() => setScanMode('camera')}
+            className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${scanMode === 'camera' ? 'bg-yellow-500 text-black shadow-[0_0_20px_rgba(234,179,8,0.3)]' : 'text-neutral-500 hover:text-neutral-300'}`}
+          >
+            Caméra
+          </button>
+          <button 
+            onClick={() => setScanMode('manual')}
+            className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${scanMode === 'manual' ? 'bg-yellow-500 text-black shadow-[0_0_20px_rgba(234,179,8,0.3)]' : 'text-neutral-500 hover:text-neutral-300'}`}
+          >
+            Clavier (Plan B)
+          </button>
         </div>
-        <h1 className="text-3xl font-black tracking-tighter uppercase">Scanner d'entrée</h1>
-        <p className="text-neutral-500 text-sm mt-2 font-medium">Contrôlez la validité des accès G-Aura.</p>
       </div>
 
-      <div className="w-full bg-neutral-900 border border-white/5 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent" />
-        
-        <form onSubmit={handleScan} className="space-y-6">
-          <div>
-            <label className="block text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-4 text-center">Entrez le code du billet</label>
-            <input 
-              type="text" 
-              value={qrInput}
-              onChange={(e) => setQrInput(e.target.value)}
-              placeholder="Ex: 550e8400-e29b..."
-              className="w-full bg-black border border-white/10 rounded-2xl px-6 py-5 text-center text-lg font-mono focus:border-yellow-500 outline-none transition-all placeholder:text-neutral-800"
-              autoFocus
-            />
-          </div>
-
-          <button 
-            type="submit" 
-            disabled={loading || !qrInput}
-            className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-black py-5 rounded-2xl transition-all flex items-center justify-center space-x-3 disabled:opacity-30 active:scale-95"
+      <div className="w-full relative flex flex-col items-center">
+        {scanMode === 'camera' && !result && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full flex flex-col items-center relative"
           >
-            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
-              <>
-                <ShieldCheck className="w-6 h-6" />
-                <span>Valider l'Accès</span>
-              </>
-            )}
-          </button>
-        </form>
+            <div className="relative w-full flex flex-col items-center">
+              <QRScanner onScanSuccess={(text) => performScan(text)} />
+              
+              {/* Loading Overlay */}
+              <AnimatePresence>
+                {loading && (
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 z-20 bg-black/60 backdrop-blur-sm rounded-[2.5rem] flex items-center justify-center"
+                  >
+                    <div className="flex flex-col items-center">
+                      <Loader2 className="w-12 h-12 text-yellow-500 animate-spin mb-4" />
+                      <span className="text-[10px] font-black text-yellow-500 uppercase tracking-[0.2em]">Vérification...</span>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="mt-8 flex flex-col items-center">
+              <div className="w-1 h-12 bg-gradient-to-b from-yellow-500/50 to-transparent mb-4" />
+              <p className="text-[10px] text-neutral-500 uppercase font-black tracking-[0.3em] text-center max-w-[200px] leading-relaxed">
+                Positionnez le QR code dans le cadre pour scanner
+              </p>
+            </div>
+          </motion.div>
+        )}
+
+        {scanMode === 'manual' && !result && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full bg-neutral-900 border border-white/5 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden"
+          >
+            <form onSubmit={handleManualSubmit} className="space-y-6">
+              <div>
+                <label className="block text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-4 text-center">Entrez le code manuellement</label>
+                <input 
+                  type="text" 
+                  value={qrInput}
+                  onChange={(e) => setQrInput(e.target.value)}
+                  placeholder="Ex: 550e8400-e29b..."
+                  className="w-full bg-black border border-white/10 rounded-2xl px-6 py-5 text-center text-sm font-mono focus:border-yellow-500 outline-none transition-all placeholder:text-neutral-800"
+                  autoFocus
+                />
+              </div>
+
+              <button 
+                type="submit" 
+                disabled={loading || !qrInput}
+                className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-black py-5 rounded-2xl transition-all flex items-center justify-center space-x-3 disabled:opacity-30"
+              >
+                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+                  <>
+                    <ShieldCheck className="w-6 h-6" />
+                    <span>Valider manuellement</span>
+                  </>
+                )}
+              </button>
+            </form>
+          </motion.div>
+        )}
       </div>
 
       {/* Result Display */}
@@ -150,7 +213,7 @@ export default function ScannerPage() {
                   ) : (
                     <div className="bg-orange-500/20 p-4 rounded-2xl border border-orange-500/30">
                       <div className="text-[10px] text-orange-300 uppercase font-black mb-1">Montant à encaisser</div>
-                      <div className="text-orange-500 font-black text-3xl tracking-tighter">${result.amount?.toFixed(2)}</div>
+                      <div className="text-orange-500 font-black text-3xl tracking-tighter">{result.amount?.toLocaleString()} <span className="text-sm">CDF</span></div>
                     </div>
                   )}
                 </div>

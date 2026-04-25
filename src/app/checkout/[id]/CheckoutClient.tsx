@@ -1,21 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import { Smartphone, CheckCircle2, Loader2, ArrowRight } from "lucide-react";
+import { Smartphone, CheckCircle2, Loader2, ArrowRight, Calendar, Clock, MapPin } from "lucide-react";
 import { submitOrder } from "@/app/actions/checkout";
 
-export default function CheckoutClient({ event }: { event: any }) {
-  const [selectedMethod, setSelectedMethod] = useState<string>("airtel");
+export default function CheckoutClient({ event, userProfile }: { event: any, userProfile: any }) {
+  // Sort categories by price ascending
+  const sortedCategories = [...(event.ticket_categories || [])].sort((a, b) => a.price_usd - b.price_usd);
+  
+  const [selectedCategory, setSelectedCategory] = useState<any>(sortedCategories[0] || null);
+  const [selectedMethod, setSelectedMethod] = useState<string>("mobile");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+
+  const priceCDF = selectedCategory ? selectedCategory.price_usd.toLocaleString() : "0";
 
   const handleSubmit = async (formData: FormData) => {
+    if (!selectedCategory) return alert("Veuillez choisir une catégorie");
+    
     setIsSubmitting(true);
     formData.append("eventId", event.id);
+    formData.append("categoryId", selectedCategory.id);
     formData.append("paymentMethod", selectedMethod);
-    formData.append("amount", event.price_usd.toString());
+    formData.append("amountCdf", selectedCategory.price_usd.toString());
     
-    // Server action to save order
     const result = await submitOrder(formData);
     
     if (result.success && result.qrHash) {
@@ -27,104 +34,187 @@ export default function CheckoutClient({ event }: { event: any }) {
   };
 
   // La vue de succès est maintenant le billet lui-même (Redirection)
-
   return (
-    <div className="space-y-8">
-      <div>
-        <h3 className="text-xl font-bold mb-4">1. Choisissez votre méthode de paiement</h3>
-        <div className="grid grid-cols-2 gap-4">
-          {['mpesa', 'airtel', 'orange', 'cash'].map((method) => (
-            <button
-              key={method}
-              onClick={() => setSelectedMethod(method)}
-              className={`p-4 rounded-xl border ${selectedMethod === method ? 'border-yellow-500 bg-yellow-500/10' : 'border-white/10 bg-neutral-900 hover:bg-neutral-800'} transition-all text-left flex flex-col`}
-            >
-              <span className="font-semibold capitalize">{method === 'mpesa' ? 'M-Pesa' : method === 'airtel' ? 'Airtel Money' : method === 'orange' ? 'Orange Money' : 'Cash à l\'entrée'}</span>
-              <span className="text-xs text-neutral-400 mt-1">
-                {method === 'cash' ? 'Payez sur place' : 'Paiement mobile'}
-              </span>
-            </button>
-          ))}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+      {/* Colonne de GAUCHE : L'Événement & Choix du Billet */}
+      <div className="relative group flex flex-col">
+        <div className="flex-1 relative bg-neutral-900 border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl flex flex-col">
+          {/* Image (Flyer Adaptatif) */}
+          <div className="relative bg-neutral-800 border-b border-white/5">
+            {event.image_url ? (
+              <img src={event.image_url} alt={event.title} className="w-full h-auto block max-h-[400px] object-contain" />
+            ) : (
+              <div className="aspect-video w-full flex items-center justify-center text-neutral-600 text-xs uppercase tracking-widest font-black">Flyer Indisponible</div>
+            )}
+          </div>
+
+          <div className="p-8 flex-1 flex flex-col">
+            {/* Titre et Infos de base */}
+            <div className="mb-8">
+              <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-4 leading-none">
+                {event.title}
+              </h2>
+              
+              <div className="flex flex-wrap gap-y-3 gap-x-6 text-neutral-400">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="w-4 h-4 text-yellow-500" />
+                  <span className="text-xs font-bold uppercase tracking-tight">
+                    {new Date(event.date_time).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Clock className="w-4 h-4 text-yellow-500" />
+                  <span className="text-xs font-bold uppercase tracking-tight">
+                    {new Date(event.date_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <MapPin className="w-4 h-4 text-yellow-500" />
+                  <span className="text-xs font-bold uppercase tracking-tight line-clamp-1">{event.location}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Sélecteur de Billets Esthétique */}
+            <div className="mb-8">
+              <label className="block text-[10px] text-neutral-500 uppercase font-black tracking-[0.2em] mb-4">Sélectionnez votre type de billet</label>
+              <div className="grid grid-cols-2 gap-3">
+                {sortedCategories.map((cat: any) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`relative p-4 rounded-2xl border text-left transition-all duration-300 ${
+                      selectedCategory?.id === cat.id 
+                      ? 'border-yellow-500 bg-yellow-500/10' 
+                      : 'border-white/5 bg-black/40 hover:bg-neutral-800'
+                    }`}
+                  >
+                    <span className={`block text-xs font-black uppercase tracking-widest mb-1 ${selectedCategory?.id === cat.id ? 'text-yellow-500' : 'text-neutral-500'}`}>
+                      {cat.name}
+                    </span>
+                    <span className="block text-xl font-black text-white">
+                      {cat.price_usd.toLocaleString()} <span className="text-[10px] text-neutral-500">CDF</span>
+                    </span>
+                    {selectedCategory?.id === cat.id && (
+                      <div className="absolute top-3 right-3">
+                        <CheckCircle2 className="w-4 h-4 text-yellow-500" />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Total Section (Sticky Bottom of card) */}
+            <div className="mt-auto pt-6 border-t border-dashed border-white/10 flex justify-between items-center">
+              <div>
+                <span className="block text-[9px] text-neutral-500 uppercase font-black tracking-widest mb-1">Prix total du billet</span>
+                <div className="flex items-baseline space-x-1">
+                  <span className="text-4xl font-black text-yellow-500 tracking-tighter">{priceCDF}</span>
+                  <span className="text-sm font-bold text-yellow-500">CDF</span>
+                </div>
+              </div>
+              <div className="bg-white/5 px-4 py-2 rounded-full border border-white/5">
+                <span className="text-[10px] font-black text-white uppercase tracking-widest">1 Personne</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {selectedMethod !== 'cash' && (
-        <div className="p-6 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl">
-          <h4 className="font-bold text-yellow-500 mb-2">Instructions de transfert</h4>
-          <p className="text-sm text-neutral-300 mb-4">
-            Envoyez exactement <span className="font-bold text-white">${event.price_usd} USD</span> au numéro suivant via {selectedMethod} :
-          </p>
-          <div className="text-3xl font-mono tracking-wider font-bold mb-6">+243 99 300 2546</div>
+      {/* Colonne de DROITE : Paiement (Ajusté) */}
+      <div className="space-y-6">
+        <div className="bg-neutral-900 border border-white/10 p-6 rounded-[2rem] shadow-xl">
+          <h3 className="text-[10px] font-black mb-5 uppercase tracking-[0.2em] text-neutral-500">Mode de Paiement</h3>
           
-          <form action={handleSubmit}>
-            <label className="block text-sm font-medium text-neutral-400 mb-2">
-              Code de référence de la transaction (SMS)
-            </label>
-            <input
-              type="text"
-              name="refCode"
-              required
-              placeholder="Ex: 8X9Y7Z6W"
-              className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors mb-6"
-            />
-            
-            <label className="block text-sm font-medium text-neutral-400 mb-2 mt-4">
-              Votre Nom complet
-            </label>
-            <input
-              type="text"
-              name="customerName"
-              required
-              placeholder="Jean Dupont"
-              className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors mb-6"
-            />
+          <div className="grid grid-cols-1 gap-3 mb-6">
+            <button
+              onClick={() => setSelectedMethod('mobile')}
+              className={`p-4 rounded-2xl border flex items-center justify-between transition-all ${selectedMethod === 'mobile' ? 'border-yellow-500 bg-yellow-500/10' : 'border-white/5 bg-black/40 hover:bg-neutral-800'}`}
+            >
+              <div className="flex items-center space-x-3">
+                <Smartphone className={`w-5 h-5 ${selectedMethod === 'mobile' ? 'text-yellow-500' : 'text-neutral-500'}`} />
+                <div className="text-left">
+                  <span className={`block text-base font-black uppercase tracking-tight ${selectedMethod === 'mobile' ? 'text-white' : 'text-neutral-400'}`}>Paiement Mobile</span>
+                  <span className="text-[9px] text-neutral-500 font-bold uppercase tracking-wide">M-Pesa, Airtel, Orange</span>
+                </div>
+              </div>
+            </button>
 
             <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-neutral-200 transition-colors flex items-center justify-center disabled:opacity-50"
+              onClick={() => setSelectedMethod('cash')}
+              className={`p-4 rounded-2xl border flex items-center justify-between transition-all ${selectedMethod === 'cash' ? 'border-yellow-500 bg-yellow-500/10' : 'border-white/5 bg-black/40 hover:bg-neutral-800'}`}
             >
-              {isSubmitting ? "Validation en cours..." : "Confirmer mon paiement"}
+              <div className="flex items-center space-x-3">
+                <CheckCircle2 className={`w-5 h-5 ${selectedMethod === 'cash' ? 'text-white' : 'text-neutral-500'}`} />
+                <div className="text-left">
+                  <span className={`block text-base font-black uppercase tracking-tight ${selectedMethod === 'cash' ? 'text-white' : 'text-neutral-400'}`}>Paiement en Argent</span>
+                  <span className="text-[9px] text-neutral-500 font-bold uppercase tracking-wide">Régler cash sur place</span>
+                </div>
+              </div>
             </button>
-          </form>
+          </div>
+
+          {selectedMethod === 'mobile' && (
+            <div className="space-y-4 animate-in fade-in slide-in-from-top-3 duration-400">
+              <div className="bg-black/60 p-5 rounded-2xl border border-white/5 text-center">
+                <span className="block text-[9px] text-neutral-500 font-black uppercase tracking-widest mb-1">Transfert au numéro</span>
+                <span className="text-2xl font-mono font-black text-white tracking-tighter">+243 99 300 2546</span>
+              </div>
+              
+              <form action={handleSubmit} className="space-y-3">
+                <input
+                  type="text"
+                  name="refCode"
+                  required
+                  placeholder="RÉFÉRENCE SMS"
+                  className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3.5 text-xs font-bold text-white focus:outline-none focus:border-yellow-500 placeholder:text-neutral-700"
+                />
+                <input
+                  type="text"
+                  name="customerName"
+                  required
+                  defaultValue={userProfile?.full_name || ""}
+                  placeholder="VOTRE NOM COMPLET"
+                  className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3.5 text-xs font-bold text-white focus:outline-none focus:border-yellow-500 placeholder:text-neutral-700"
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-yellow-500 text-black font-black py-4 rounded-xl text-xs hover:bg-yellow-400 transition-all shadow-lg active:scale-[0.98] uppercase tracking-widest"
+                >
+                  {isSubmitting ? "Validation..." : "Confirmer"}
+                </button>
+              </form>
+            </div>
+          )}
+
+          {selectedMethod === 'cash' && (
+            <form action={handleSubmit} className="space-y-4 animate-in fade-in slide-in-from-top-3 duration-400">
+              <input
+                type="text"
+                name="customerName"
+                required
+                defaultValue={userProfile?.full_name || ""}
+                placeholder="VOTRE NOM COMPLET"
+                className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3.5 text-xs font-bold text-white focus:outline-none focus:border-yellow-500 placeholder:text-neutral-700"
+              />
+              <div className="bg-white/5 p-3 rounded-xl border border-white/5">
+                <p className="text-[10px] text-neutral-500 text-center leading-tight">
+                  Réglez <span className="text-white font-black">{priceCDF} CDF</span> cash à l'entrée.
+                </p>
+              </div>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-white text-black font-black py-4 rounded-xl text-xs hover:bg-neutral-200 transition-all active:scale-[0.98] uppercase tracking-widest"
+              >
+                {isSubmitting ? "Réservation..." : "Réserver"}
+              </button>
+            </form>
+          )}
         </div>
-      )}
-
-      {selectedMethod === 'cash' && (
-        <form action={handleSubmit} className="p-6 bg-neutral-900 border border-white/10 rounded-2xl">
-          <h4 className="font-bold text-white mb-4">Réservation pour paiement sur place</h4>
-          
-          <label className="block text-sm font-medium text-neutral-400 mb-2">
-            Votre Nom complet
-          </label>
-          <input
-            type="text"
-            name="customerName"
-            required
-            placeholder="Jean Dupont"
-            className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors mb-6"
-          />
-
-          <label className="block text-sm font-medium text-neutral-400 mb-2 mt-4">
-            Numéro WhatsApp (Pour recevoir le billet)
-          </label>
-          <input
-            type="text"
-            name="customerPhone"
-            required
-            placeholder="+243..."
-            className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors mb-6"
-          />
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-neutral-200 transition-colors flex items-center justify-center disabled:opacity-50"
-          >
-            {isSubmitting ? "Réservation en cours..." : "Confirmer ma réservation"}
-          </button>
-        </form>
-      )}
+      </div>
     </div>
   );
 }

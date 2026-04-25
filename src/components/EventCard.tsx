@@ -49,7 +49,7 @@ export default function EventCard({ id, title, date, location, imageUrl, isPremi
         </div>
 
         <Link
-          href={`/events/${id}`}
+          href={`/checkout/${id}`}
           className="flex items-center justify-between text-yellow-500 font-medium group-hover:text-yellow-400 transition-colors"
         >
           <span>Réserver</span>

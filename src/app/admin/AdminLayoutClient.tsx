@@ -1,40 +1,104 @@
 "use client";
 
+/* Force Rebuild 1.1 */
+import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { LayoutDashboard, CheckSquare, QrCode, LogOut, FileText, Users, Calendar } from "lucide-react";
+import { LayoutDashboard, CheckSquare, QrCode, LogOut, FileText, Users, Calendar, Camera, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({ children, role, userName }: { children: React.ReactNode, role: string, userName?: string }) {
   const pathname = usePathname();
 
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.id = 'scrollbar-style';
+    style.innerHTML = `
+      /* KILL ARROWS DEFINITIVELY */
+      ::-webkit-scrollbar-button {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+      }
+      
+      ::-webkit-scrollbar {
+        width: 14px !important;
+        height: 14px !important;
+      }
+      
+      ::-webkit-scrollbar-track {
+        background: transparent !important;
+      }
+      
+      ::-webkit-scrollbar-thumb {
+        background-color: #eab308 !important;
+        /* Magic for INSIDE look: thick transparent border */
+        border: 5px solid transparent !important;
+        background-clip: padding-box !important;
+        border-radius: 20px !important;
+      }
+      
+      ::-webkit-scrollbar-thumb:hover {
+        background-color: #facc15 !important;
+      }
+      
+      ::-webkit-scrollbar-corner {
+        background: transparent !important;
+      }
+
+      /* Force overlay mode so scrollbar floats OVER content (inside the box) */
+      * {
+        scrollbar-width: thin !important;
+        scrollbar-color: #eab308 transparent !important;
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      const existingStyle = document.getElementById('scrollbar-style');
+      if (existingStyle) document.head.removeChild(existingStyle);
+    };
+  }, []);
+
   const NAV_ITEMS = [
-    { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    { name: "Événements", href: "/admin/events", icon: Calendar },
-    { name: "Paiements", href: "/admin/payments", icon: CheckSquare },
-    { name: "Scanner", href: "/admin/scanner", icon: QrCode },
-    { name: "Billets", href: "/admin/tickets", icon: FileText },
-    { name: "Membres", href: "/admin/members", icon: Users },
+    { name: "Dashboard", href: "/admin", icon: LayoutDashboard, roles: ["super_admin", "admin", "manager", "moderator"] },
+    { name: "Événements", href: "/admin/events", icon: Calendar, roles: ["super_admin", "admin", "manager", "moderator"] },
+    { name: "Boutique", href: "/admin/merch", icon: ShoppingBag, roles: ["super_admin", "admin", "manager", "moderator"] },
+    { name: "Galerie", href: "/admin/gallery", icon: Camera, roles: ["super_admin", "admin", "manager", "scanner", "moderator"] },
+    { name: "Paiements", href: "/admin/payments", icon: CheckSquare, roles: ["super_admin", "admin", "finance", "moderator"] },
+    { name: "Scanner", href: "/admin/scanner", icon: QrCode, roles: ["super_admin", "admin", "manager", "scanner", "moderator"] },
+    { name: "Billets", href: "/admin/tickets", icon: FileText, roles: ["super_admin", "admin", "moderator"] },
+    { name: "Membres", href: "/admin/members", icon: Users, roles: ["super_admin", "admin", "moderator"] },
   ];
+
+  const filteredItems = NAV_ITEMS.filter(item => item.roles.includes(role));
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col md:flex-row">
-      {/* Mobile Top Bar */}
-      <div className="md:hidden flex items-center justify-between p-4 border-b border-white/5 bg-neutral-900 sticky top-0 z-50">
-        <span className="font-bold text-yellow-500 tracking-wider text-sm">G-AURA ADMIN</span>
-        <button className="text-neutral-400 hover:text-white">
-          <LogOut className="w-5 h-5" />
-        </button>
-      </div>
+      {/* Desktop Sidebar (Fixed Position) */}
+      <div className="hidden md:flex flex-col w-72 bg-neutral-900 border-r border-white/5 sticky top-16 h-[calc(100vh-64px)] overflow-y-auto scrollbar-hide">
+        <div className="p-8">
+          <div className="flex items-center space-x-4 p-5 bg-white/5 rounded-3xl border border-white/5 shadow-2xl relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            
+            {/* Elegant Vertical Divider */}
+            <div className="w-1 h-8 bg-yellow-500 rounded-full shadow-[0_0_15px_rgba(234,179,8,0.5)]" />
 
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 border-r border-white/5 bg-neutral-900 p-6 min-h-screen">
-        <div className="font-bold text-yellow-500 tracking-wider text-xl mb-12">
-          G-AURA <br/><span className="text-white text-sm font-light">ADMINISTRATION</span>
+            <div className="flex flex-col min-w-0">
+              <h2 className="text-lg font-black text-white truncate uppercase tracking-tighter leading-none mb-1.5">
+                {userName ? userName.split(' ')[0] : "Admin"}
+              </h2>
+              <div className="flex items-center space-x-2">
+                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                <span className="text-[10px] font-black text-yellow-500 uppercase tracking-[0.3em] opacity-80">
+                  {role.replace('_', ' ')}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
         
-        <nav className="flex-1 space-y-2">
-          {NAV_ITEMS.map((item) => {
+        <nav className="flex-1 space-y-2 px-6">
+          {filteredItems.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
@@ -53,38 +117,35 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           })}
         </nav>
 
-        <button className="flex items-center space-x-3 px-4 py-3 text-neutral-400 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all mt-auto">
-          <LogOut className="w-5 h-5" />
-          <span>Déconnexion</span>
-        </button>
-      </aside>
+
+      </div>
 
       {/* Main Content Area */}
       <main className="flex-1 pb-24 md:pb-0 overflow-y-auto">
         {children}
       </main>
 
-      {/* Mobile Bottom Navigation (Crucial for Kinshasa mobile-first Admin) */}
-      <nav className="md:hidden fixed bottom-0 w-full border-t border-white/5 bg-neutral-900/90 backdrop-blur-xl z-50 pb-safe">
-        <div className="flex items-center justify-around p-3">
-          {NAV_ITEMS.map((item) => {
+      {/* Mobile Bottom Navigation (Scrollable for Kinshasa mobile-first Admin) */}
+      <nav className="md:hidden fixed bottom-0 w-full border-t border-white/5 bg-neutral-900/95 backdrop-blur-2xl z-50 pb-safe">
+        <div className="flex items-center overflow-x-auto px-4 py-1.5 space-x-6 scrollbar-hide no-scrollbar">
+          {filteredItems.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex flex-col items-center justify-center space-y-1 w-16 h-14 rounded-xl transition-all ${
+                className={`flex flex-col items-center justify-center flex-shrink-0 space-y-1 min-w-[70px] transition-all ${
                   isActive 
-                    ? "text-yellow-500" 
-                    : "text-neutral-500 hover:text-neutral-300"
+                    ? "text-yellow-500 scale-110" 
+                    : "text-neutral-500"
                 }`}
               >
                 <item.icon className="w-6 h-6" />
-                <span className="text-[10px] font-medium">{item.name}</span>
+                <span className="text-[10px] font-black uppercase tracking-tighter whitespace-nowrap">{item.name}</span>
                 {isActive && (
                   <motion.div 
-                    layoutId="activeTab" 
-                    className="absolute bottom-1 w-1 h-1 bg-yellow-500 rounded-full"
+                    layoutId="activeTabMobile" 
+                    className="absolute -bottom-1 w-1 h-1 bg-yellow-500 rounded-full shadow-[0_0_8px_rgba(234,179,8,0.8)]"
                   />
                 )}
               </Link>

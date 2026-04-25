@@ -16,11 +16,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // 2. Check role
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, full_name")
     .eq("id", user.id)
     .single();
 
-  const allowedRoles = ["admin", "manager", "scanner", "super_admin"];
+  const allowedRoles = ["admin", "manager", "scanner", "super_admin", "moderator"];
   if (!profile || !allowedRoles.includes(profile.role)) {
     redirect("/my-tickets"); // Regular users can't access admin
   }
@@ -55,10 +55,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     );
   }
 
-  // 4. All good → show admin layout with pt-20 for navbar
+  // 4. All good → show admin layout with pt-16 for navbar
   return (
-    <div className="pt-20">
-      <AdminLayoutClient>{children}</AdminLayoutClient>
+    <div className="pt-16">
+      <AdminLayoutClient role={profile.role} userName={profile.full_name}>{children}</AdminLayoutClient>
     </div>
   );
 }

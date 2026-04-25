@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { FileText, Send } from "lucide-react";
 import Link from "next/link";
+import TicketDeleteButton from "./TicketDeleteButton";
 
 export default async function AdminTicketsPage() {
   const supabase = await createClient();
@@ -67,7 +68,7 @@ export default async function AdminTicketsPage() {
 
               <div className="flex items-center space-x-3 pt-4 md:pt-0 border-t border-white/5 md:border-t-0 w-full md:w-auto">
                 <Link
-                  href={ticketUrl}
+                  href={`/tickets/${t.qr_code_hash}`}
                   target="_blank"
                   className="flex-1 md:flex-none text-center px-4 py-2 border border-white/10 hover:bg-white/5 text-white rounded-xl text-sm font-medium transition-colors"
                 >
@@ -82,6 +83,7 @@ export default async function AdminTicketsPage() {
                   <Send className="w-4 h-4" />
                   <span>WhatsApp</span>
                 </a>
+                <TicketDeleteButton ticketId={t.id} />
               </div>
             </div>
           );

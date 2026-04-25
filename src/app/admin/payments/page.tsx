@@ -88,9 +88,11 @@ export default function AdminPaymentsPage() {
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
                       <span className="font-bold text-sm">{order.customer_name}</span>
-                      <span className="text-[10px] text-yellow-500 font-mono mt-1 bg-yellow-500/10 px-2 py-0.5 rounded-full w-fit uppercase">
-                        Ref: {order.payment_reference || "N/A"}
-                      </span>
+                      {order.payment_method !== 'cash' && (
+                        <span className="text-[10px] text-yellow-500 font-mono mt-1 bg-yellow-500/10 px-2 py-0.5 rounded-full w-fit uppercase">
+                          Ref: {order.payment_reference}
+                        </span>
+                      )}
                       <span className="text-[10px] text-neutral-500 mt-1 italic">{order.customer_phone}</span>
                     </div>
                   </td>
@@ -101,8 +103,12 @@ export default function AdminPaymentsPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm font-bold text-white">${order.total_price_usd.toFixed(2)}</div>
-                    <div className="text-[10px] text-neutral-500 uppercase">{order.payment_method}</div>
+                    <div className="text-sm font-bold text-white">
+                      {order.total_price_usd.toLocaleString()} <span className="text-[10px] text-neutral-500">CDF</span>
+                    </div>
+                    <div className={`text-[10px] uppercase font-black tracking-tighter ${order.payment_method === 'cash' ? 'text-orange-500' : 'text-blue-500'}`}>
+                      {order.payment_method}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-2">
