@@ -41,7 +41,7 @@ export default async function AdminDashboard() {
             Commission Plateforme due
           </div>
           <div className={`text-3xl font-bold ${totalDue >= 50 ? "text-red-400" : "text-neutral-300"}`}>${totalDue.toFixed(2)}</div>
-          <div className="text-xs text-neutral-500 mt-1">À reverser au Super Admin</div>
+          <div className="text-xs text-neutral-500 mt-1">À reverser au développeur</div>
         </div>
       </div>
 
