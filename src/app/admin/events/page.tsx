@@ -283,7 +283,7 @@ export default function AdminEventsPage() {
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 px-1 text-[9px] font-black text-neutral-600 uppercase tracking-widest">
                       <div className="flex-1 min-w-0">Nom de la catégorie</div>
-                      <div className="w-14 md:w-20 text-center">Prix ($)</div>
+                      <div className="w-14 md:w-20 text-center">Prix (CDF)</div>
                       <div className="w-14 md:w-20 text-center">Places</div>
                       {newCategories.length > 1 && <div className="w-6 shrink-0"></div>}
                     </div>
@@ -301,7 +301,7 @@ export default function AdminEventsPage() {
                         />
                         <input
                           type="number"
-                          placeholder="$"
+                          placeholder="CDF"
                           className="w-14 md:w-20 bg-black border border-white/10 rounded-lg px-2 md:px-3 py-2 text-xs text-center"
                           value={cat.price_usd}
                           onChange={(e) => {
