@@ -26,6 +26,9 @@ export default function Navbar() {
           <Link href="/gallery" className="hover:text-white transition-colors">
             Galerie
           </Link>
+          <Link href="/my-tickets" className="hover:text-white transition-colors">
+            Mes Billets
+          </Link>
         </div>
 
         {/* Actions */}
@@ -41,9 +44,9 @@ export default function Navbar() {
             <User className="w-4 h-4" />
             <span>Connexion</span>
           </Link>
-          <button className="text-sm font-medium bg-gradient-to-r from-yellow-500 to-yellow-600 text-black px-6 py-2 rounded-full hover:opacity-90 transition-opacity">
+          <Link href="/events" className="text-sm font-medium bg-gradient-to-r from-yellow-500 to-yellow-600 text-black px-6 py-2 rounded-full hover:opacity-90 transition-opacity">
             Billetterie
-          </button>
+          </Link>
         </div>
 
         {/* Mobile Menu Button */}
@@ -70,6 +73,9 @@ export default function Navbar() {
           </Link>
           <Link href="/gallery" className="text-lg font-medium text-white">
             Galerie
+          </Link>
+          <Link href="/my-tickets" className="text-lg font-medium text-yellow-500">
+            🎟 Mes Billets
           </Link>
           <hr className="border-white/10" />
           <div className="flex justify-between items-center">
