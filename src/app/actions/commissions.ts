@@ -1,9 +1,9 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/admin";
 
 export async function getCommissions() {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   
   const { data, error } = await supabase
     .from("platform_commissions")
