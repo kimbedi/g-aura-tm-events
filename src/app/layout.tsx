@@ -4,6 +4,8 @@ import "./globals.css";
 import { createClient } from "@/utils/supabase/server";
 import NavbarWrapper from "@/components/NavbarWrapper";
 
+export const dynamic = "force-dynamic";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
