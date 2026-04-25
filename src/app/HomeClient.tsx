@@ -49,7 +49,7 @@ export default function HomeClient({ featuredEvent }: HomeClientProps) {
               <Link href="/events" className="w-full sm:w-auto">
                 <button className="w-full flex items-center justify-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/5 text-white px-8 py-4 rounded-full font-medium transition-all backdrop-blur-md">
                   <LayoutGrid className="w-5 h-5" />
-                  <span>Catalogue</span>
+                  <span>Events</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </Link>
