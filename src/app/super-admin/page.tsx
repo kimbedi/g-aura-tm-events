@@ -1,5 +1,6 @@
 import { getCommissions } from "@/app/actions/commissions";
 import { DollarSign, Landmark, ArrowRightLeft, ShieldCheck } from "lucide-react";
+import KohoPaymentGuide from "@/components/KohoPaymentGuide";
 
 export default async function SuperAdminDashboard() {
   const { totalDue, totalPaid, history } = await getCommissions();
@@ -96,6 +97,8 @@ export default async function SuperAdminDashboard() {
             </table>
           </div>
         </div>
+        {/* Guide de paiement pour le partenaire Kinshasa */}
+        <KohoPaymentGuide amountOwed={totalDue} />
       </div>
     </div>
   );
