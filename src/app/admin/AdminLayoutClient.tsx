@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { LayoutDashboard, CheckSquare, QrCode, LogOut, FileText, Users } from "lucide-react";
+import { LayoutDashboard, CheckSquare, QrCode, LogOut, FileText, Users, Calendar } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -10,6 +10,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const NAV_ITEMS = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { name: "Événements", href: "/admin/events", icon: Calendar },
     { name: "Paiements", href: "/admin/payments", icon: CheckSquare },
     { name: "Scanner", href: "/admin/scanner", icon: QrCode },
     { name: "Billets", href: "/admin/tickets", icon: FileText },
