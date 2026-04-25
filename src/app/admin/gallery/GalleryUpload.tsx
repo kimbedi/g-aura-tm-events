@@ -32,11 +32,11 @@ export default function GalleryUpload({ events }: { events: any[] }) {
       // 1. Upload to Supabase Storage
       const { data, error } = await supabase.storage
         .from('gallery')
-        .upload(filePath, file, {
-          onUploadProgress: (p) => {
-            setProgress(prev => ({ ...prev, [file.name]: (p.loaded / p.total) * 100 }));
-          }
-        });
+        .upload(filePath, file);
+
+      if (!error) {
+        setProgress(prev => ({ ...prev, [file.name]: 100 }));
+      }
 
       if (error) {
         console.error("Upload error:", error);
