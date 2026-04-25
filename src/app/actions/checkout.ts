@@ -26,13 +26,34 @@ export async function submitOrder(formData: FormData) {
     total_price_usd: 100.00,
     quantity: 1
     // ticket_category_id: ...
-  });
+  }).select();
 
-  if (error) {
+  if (error || !data) {
     console.error("Order insertion error:", error);
     return { error: "Failed to submit order" };
   }
 
+  const newOrder = data[0];
+
+  // 2. Generate Digital Ticket IMMEDIATELY (pending validation)
+  const crypto = require("crypto");
+  const qrHash = crypto.randomBytes(16).toString("hex");
+
+  const { error: ticketError } = await supabase
+    .from("issued_tickets")
+    .insert({
+      order_id: newOrder.id,
+      event_id: eventId,
+      owner_name: customerName,
+      qr_code_hash: qrHash,
+      status: "pending_validation" // Important: Needs validation at the door
+    });
+
+  if (ticketError) {
+    console.error("Ticket generation error:", ticketError);
+    return { error: "Failed to generate ticket" };
+  }
+
   revalidatePath("/admin/payments");
-  return { success: true };
+  return { success: true, qrHash };
 }

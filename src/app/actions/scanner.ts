@@ -2,15 +2,16 @@
 
 import { createClient } from "@/utils/supabase/server";
 
-export async function scanTicket(qrHash: string) {
+// Cette fonction est appelée UNIQUEMENT pour lire l'état du billet lors du scan
+export async function getTicketInfo(qrHash: string) {
   const supabase = await createClient();
 
-  // Fetch the ticket
   const { data: ticket, error } = await supabase
     .from("issued_tickets")
     .select(`
       *,
-      events ( title )
+      events ( title, price_usd ),
+      orders!inner ( id, payment_method, payment_reference, status )
     `)
     .eq("qr_code_hash", qrHash)
     .single();
@@ -19,30 +20,31 @@ export async function scanTicket(qrHash: string) {
     return { success: false, message: "Billet introuvable ou faux billet." };
   }
 
-  // Check if already scanned
-  if (ticket.status !== "available") {
-    return { 
-      success: false, 
-      message: `Ce billet a déjà été scanné le ${new Date(ticket.scanned_at).toLocaleString('fr-FR')}.`,
-      data: ticket 
-    };
-  }
+  return { success: true, ticket };
+}
 
-  // Mark as scanned
-  const { error: updateError } = await supabase
+// Cette fonction est appelée quand l'admin clique sur "Approuver" sur le scanner
+export async function approveAndScanTicket(ticketId: string, orderId: string) {
+  const supabase = await createClient();
+
+  // 1. Mark order as completed
+  const { error: orderError } = await supabase
+    .from("orders")
+    .update({ status: "completed", validated_at: new Date().toISOString() })
+    .eq("id", orderId);
+
+  if (orderError) return { success: false, message: "Erreur validation commande." };
+
+  // 2. Mark ticket as scanned (available is skipped because it's validated at the door)
+  const { error: ticketError } = await supabase
     .from("issued_tickets")
     .update({ 
       status: "scanned", 
       scanned_at: new Date().toISOString() 
     })
-    .eq("id", ticket.id);
+    .eq("id", ticketId);
 
-  if (updateError) {
-    return { success: false, message: "Erreur lors de la mise à jour du billet." };
-  }
+  if (ticketError) return { success: false, message: "Erreur scan billet." };
 
-  return { 
-    success: true, 
-    data: ticket 
-  };
+  return { success: true };
 }

@@ -16,28 +16,17 @@ export default function CheckoutClient({ event }: { event: any }) {
     formData.append("amount", event.price_usd.toString());
     
     // Server action to save order
-    await submitOrder(formData);
+    const result = await submitOrder(formData);
     
-    setIsSuccess(true);
-    setIsSubmitting(false);
+    if (result.success && result.qrHash) {
+      window.location.href = `/tickets/${result.qrHash}`;
+    } else {
+      setIsSubmitting(false);
+      alert("Une erreur est survenue.");
+    }
   };
 
-  if (isSuccess) {
-    return (
-      <div className="bg-neutral-900 border border-white/5 rounded-3xl p-8 text-center flex flex-col items-center justify-center h-full min-h-[400px]">
-        <div className="w-16 h-16 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-          <CheckCircle2 className="w-8 h-8" />
-        </div>
-        <h2 className="text-2xl font-bold mb-4">Paiement en cours de validation</h2>
-        <p className="text-neutral-400 mb-8">
-          Nous avons bien reçu votre référence. Un administrateur va vérifier la transaction d'ici quelques minutes. Votre billet numérique vous sera envoyé immédiatement après.
-        </p>
-        <button className="w-full py-3 bg-white text-black font-semibold rounded-xl hover:bg-neutral-200 transition-colors">
-          Voir mes commandes
-        </button>
-      </div>
-    );
-  }
+  // La vue de succès est maintenant le billet lui-même (Redirection)
 
   return (
     <div className="space-y-8">
