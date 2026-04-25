@@ -16,6 +16,18 @@ export async function getMembers() {
 
 export async function updateMemberRole(userId: string, newRole: string) {
   const supabase = await createClient();
+
+  // Security: Don't allow changing a super_admin role
+  const { data: target } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .single();
+
+  if (target?.role === "super_admin") {
+    throw new Error("Impossible de modifier le rôle du DevTool.");
+  }
+
   const { error } = await supabase
     .from("profiles")
     .update({ role: newRole })

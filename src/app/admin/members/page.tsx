@@ -93,28 +93,31 @@ export default function MembersPage() {
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
-                      member.role === 'super_admin' ? 'bg-red-500/20 text-red-400' :
+                      member.role === 'super_admin' ? 'bg-indigo-500/20 text-indigo-400' :
                       member.role === 'admin' ? 'bg-yellow-500/20 text-yellow-400' :
                       'bg-neutral-800 text-neutral-400'
                     }`}>
-                      {member.role}
+                      {member.role === 'super_admin' ? 'DevTool' : member.role}
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-2">
                       <select 
                         value={member.role}
-                        disabled={updatingId === member.id}
+                        disabled={updatingId === member.id || member.role === 'super_admin'}
                         onChange={(e) => handleRoleChange(member.id, e.target.value)}
-                        className="bg-black border border-white/10 rounded-lg text-xs px-2 py-1 focus:outline-none focus:border-yellow-500 disabled:opacity-50"
+                        className={`bg-black border border-white/10 rounded-lg text-xs px-2 py-1 focus:outline-none focus:border-yellow-500 ${
+                          member.role === 'super_admin' ? 'opacity-30 cursor-not-allowed' : 'opacity-100'
+                        }`}
                       >
                         <option value="user">Utilisateur</option>
                         <option value="scanner">Scanner</option>
                         <option value="manager">Manager</option>
                         <option value="admin">Admin</option>
-                        <option value="super_admin">Super Admin</option>
+                        {member.role === 'super_admin' && <option value="super_admin">DevTool</option>}
                       </select>
                       {updatingId === member.id && <Loader2 className="w-3 h-3 animate-spin text-yellow-500" />}
+                      {member.role === 'super_admin' && <Shield className="w-3 h-3 text-indigo-400 opacity-50" />}
                     </div>
                   </td>
                 </tr>
