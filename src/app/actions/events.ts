@@ -178,25 +178,80 @@ export async function updateEvent(id: string, formData: FormData) {
     throw new Error(error.message);
   }
 
-  // Categories update
+  // Categories update — diff against the existing rows so we don't blindly
+  // delete-and-reinsert. The previous version would silently duplicate rows
+  // whenever the DELETE failed (e.g. an FK from issued_tickets/orders).
   const categoriesRaw = formData.get("categories");
   if (categoriesRaw) {
-    const categories = JSON.parse(categoriesRaw as string);
-    console.log("Mise à jour des catégories:", categories.length);
-    
-    // Supprimer et recréer les catégories
-    const { error: delError } = await adminSupabase.from("ticket_categories").delete().eq("event_id", id);
-    if (delError) console.error("Erreur delete categories:", delError);
+    const submitted: Array<{ id?: string; name: string; price_usd: number | string; capacity: number | string }> =
+      JSON.parse(categoriesRaw as string);
 
-    const categoriesWithEventId = categories.map((cat: any) => ({
-      name: cat.name,
-      price_usd: Number(cat.price_usd),
-      capacity: Number(cat.capacity),
-      event_id: id
-    }));
-    
-    const { error: insError } = await adminSupabase.from("ticket_categories").insert(categoriesWithEventId);
-    if (insError) console.error("Erreur insert categories:", insError);
+    // 1. Pull current state from DB
+    const { data: existing, error: fetchError } = await adminSupabase
+      .from("ticket_categories")
+      .select("id")
+      .eq("event_id", id);
+
+    if (fetchError) {
+      console.error("Erreur fetch existing categories:", fetchError);
+      throw new Error("Impossible de lire les catégories existantes : " + fetchError.message);
+    }
+
+    const existingIds = new Set((existing ?? []).map((c) => c.id));
+    const submittedIds = new Set(submitted.filter((c) => c.id).map((c) => c.id as string));
+
+    // 2. Categories removed in the UI → delete from DB
+    const idsToDelete = [...existingIds].filter((eid) => !submittedIds.has(eid));
+    if (idsToDelete.length > 0) {
+      const { error: delError } = await adminSupabase
+        .from("ticket_categories")
+        .delete()
+        .in("id", idsToDelete);
+      if (delError) {
+        console.error("Erreur delete categories:", delError);
+        // Most common cause: FK from issued_tickets (ON DELETE RESTRICT).
+        throw new Error(
+          "Impossible de supprimer une catégorie déjà liée à des billets émis. " +
+            "Annule plutôt l'événement ou crée une nouvelle catégorie."
+        );
+      }
+    }
+
+    // 3. Categories with an id and still present → update in place
+    const toUpdate = submitted.filter((c) => c.id && existingIds.has(c.id));
+    for (const cat of toUpdate) {
+      const { error: updError } = await adminSupabase
+        .from("ticket_categories")
+        .update({
+          name: cat.name,
+          price_usd: Number(cat.price_usd),
+          capacity: Number(cat.capacity),
+        })
+        .eq("id", cat.id!);
+      if (updError) {
+        console.error("Erreur update category:", updError);
+        throw new Error("Erreur mise à jour catégorie : " + updError.message);
+      }
+    }
+
+    // 4. New categories (no id) → insert
+    const toInsert = submitted
+      .filter((c) => !c.id)
+      .map((cat) => ({
+        name: cat.name,
+        price_usd: Number(cat.price_usd),
+        capacity: Number(cat.capacity),
+        event_id: id,
+      }));
+    if (toInsert.length > 0) {
+      const { error: insError } = await adminSupabase
+        .from("ticket_categories")
+        .insert(toInsert);
+      if (insError) {
+        console.error("Erreur insert categories:", insError);
+        throw new Error("Erreur création catégorie : " + insError.message);
+      }
+    }
   }
 
   console.log("✅ Mise à jour réussie !");
