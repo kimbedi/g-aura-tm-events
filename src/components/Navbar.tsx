@@ -65,16 +65,10 @@ export default function Navbar({ user, profile }: NavbarProps) {
             <div className="flex items-center space-x-3">
               <Link
                 href="/login"
-                className="flex items-center space-x-2 text-sm font-medium text-white px-4 py-2 hover:bg-white/5 rounded-full transition-colors"
+                className="flex items-center space-x-2 text-sm font-medium bg-gradient-to-r from-yellow-500 to-yellow-600 text-black px-5 py-2 rounded-full hover:opacity-90 transition-opacity"
               >
                 <User className="w-4 h-4" />
                 <span>Connexion</span>
-              </Link>
-              <Link
-                href="/events"
-                className="text-sm font-medium bg-gradient-to-r from-yellow-500 to-yellow-600 text-black px-6 py-2 rounded-full hover:opacity-90 transition-opacity"
-              >
-                Billetterie
               </Link>
             </div>
           )}
