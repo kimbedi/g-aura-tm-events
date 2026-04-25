@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { motion } from "framer-motion";
 import { ArrowRight, Ticket, Calendar, MapPin, Star } from "lucide-react";
 import Link from "next/link";
 
