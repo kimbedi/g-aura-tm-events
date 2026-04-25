@@ -213,7 +213,7 @@ export default function ScannerPage() {
                   ) : (
                     <div className="bg-orange-500/20 p-4 rounded-2xl border border-orange-500/30">
                       <div className="text-[10px] text-orange-300 uppercase font-black mb-1">Montant à encaisser</div>
-                      <div className="text-orange-500 font-black text-3xl tracking-tighter">{result.amount?.toLocaleString()} <span className="text-sm">CDF</span></div>
+                      <div className="text-orange-500 font-black text-3xl tracking-tighter">{result.amount?.toLocaleString()} <span className="text-sm">USD</span></div>
                     </div>
                   )}
                 </div>

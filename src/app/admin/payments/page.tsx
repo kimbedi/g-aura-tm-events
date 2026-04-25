@@ -104,7 +104,7 @@ export default function AdminPaymentsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm font-bold text-white">
-                      {order.total_price_usd.toLocaleString()} <span className="text-[10px] text-neutral-500">CDF</span>
+                      {order.total_price_usd.toLocaleString()} <span className="text-[10px] text-neutral-500">USD</span>
                     </div>
                     <div className={`text-[10px] uppercase font-black tracking-tighter ${order.payment_method === 'cash' ? 'text-orange-500' : 'text-blue-500'}`}>
                       {order.payment_method}

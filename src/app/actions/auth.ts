@@ -29,8 +29,7 @@ export async function login(formData: FormData) {
   revalidatePath("/", "layout");
   
   const role = profile?.role;
-  if (role === "super_admin") redirect("/super-admin");
-  if (role === "admin" || role === "manager" || role === "scanner") redirect("/admin");
+  if (role === "super_admin" || role === "admin" || role === "manager" || role === "scanner") redirect("/admin");
   redirect("/my-tickets"); // Regular users go to their tickets
 }
 

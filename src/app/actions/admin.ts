@@ -66,7 +66,7 @@ export async function validateOrder(orderId: string) {
 export async function getAdminStats() {
   const supabase = await createClient();
 
-  // 1. Total Completed Revenue (CDF)
+  // 1. Total Completed Revenue (USD)
   const { data: completedOrders } = await supabase
     .from("orders")
     .select("total_price_usd")

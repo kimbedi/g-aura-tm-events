@@ -117,7 +117,7 @@ export default function MerchAdminClient({ initialProducts }: { initialProducts:
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
                   <h2 className="text-2xl font-black text-white uppercase tracking-tighter">{product.name}</h2>
-                  <div className="text-xl font-black text-yellow-500">{formatNumber(product.base_price_usd)} CDF</div>
+                  <div className="text-xl font-black text-yellow-500">{formatNumber(product.base_price_usd)} USD</div>
                 </div>
                 <p className="text-neutral-500 text-sm mb-6 max-w-xl">{product.description}</p>
 
@@ -212,7 +212,7 @@ export default function MerchAdminClient({ initialProducts }: { initialProducts:
 
                 <div className="grid grid-cols-2 gap-6">
                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">Prix (CDF)</label>
+                      <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">Prix (USD)</label>
                       <input required type="number" value={newPrice} onChange={e => setNewPrice(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-yellow-500" />
                    </div>
                    <div className="space-y-2 text-center">

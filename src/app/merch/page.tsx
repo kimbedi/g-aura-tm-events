@@ -104,7 +104,7 @@ export default async function MerchStorePage() {
                   <div className="flex items-center justify-between mt-6">
                     <div className="flex flex-col">
                       <span className="text-2xl font-black text-white tracking-tighter">
-                        {Number(product.base_price_usd).toLocaleString()} <span className="text-[10px] text-neutral-500">CDF</span>
+                        {Number(product.base_price_usd).toLocaleString()} <span className="text-[10px] text-neutral-500">USD</span>
                       </span>
                     </div>
                     <div className="flex items-center text-[10px] font-black uppercase tracking-widest text-neutral-500 group-hover:text-white transition-colors">

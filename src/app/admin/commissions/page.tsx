@@ -1,7 +1,23 @@
 import { getCommissions } from "@/app/actions/commissions";
+import { createClient } from "@/utils/supabase/server";
 import { DollarSign, Landmark, ArrowRightLeft, ShieldCheck } from "lucide-react";
+import { redirect } from "next/navigation";
 
-export default async function SuperAdminDashboard() {
+// This page lives under /admin so it inherits the admin sidebar/navigation,
+// but only super_admin should see commission/Koho payout data.
+export default async function CommissionsLedgerPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user?.id)
+    .single();
+
+  if (profile?.role !== "super_admin") {
+    redirect("/admin");
+  }
+
   const { totalDue, totalPaid, history } = await getCommissions();
 
   return (

@@ -104,7 +104,7 @@ export default async function TicketPage({ params }: { params: Promise<{ hash: s
               <div className="mt-4 p-3 bg-orange-50 border border-orange-100 rounded-xl">
                 <div className="flex items-center justify-center space-x-2 text-orange-600">
                   <Banknote className="w-3.5 h-3.5" />
-                  <span className="text-[9px] font-black uppercase tracking-widest">A régler : {ticket.events?.price_usd} CDF</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest">A régler : {ticket.events?.price_usd} USD</span>
                 </div>
               </div>
             )}

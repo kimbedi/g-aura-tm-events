@@ -13,7 +13,7 @@ export default function CheckoutClient({ event, userProfile }: { event: any, use
   const [selectedMethod, setSelectedMethod] = useState<string>("mobile");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const priceCDF = selectedCategory ? formatNumber(selectedCategory.price_usd) : "0";
+  const priceUSD = selectedCategory ? formatNumber(selectedCategory.price_usd) : "0";
 
   const handleSubmit = async (formData: FormData) => {
     if (!selectedCategory) return alert("Veuillez choisir une catégorie");
@@ -94,7 +94,7 @@ export default function CheckoutClient({ event, userProfile }: { event: any, use
                       {cat.name}
                     </span>
                     <span className="block text-xl font-black text-white">
-                      {formatNumber(cat.price_usd)} <span className="text-[10px] text-neutral-500">CDF</span>
+                      {formatNumber(cat.price_usd)} <span className="text-[10px] text-neutral-500">USD</span>
                     </span>
                     {selectedCategory?.id === cat.id && (
                       <div className="absolute top-3 right-3">
@@ -111,8 +111,8 @@ export default function CheckoutClient({ event, userProfile }: { event: any, use
               <div>
                 <span className="block text-[9px] text-neutral-500 uppercase font-black tracking-widest mb-1">Prix total du billet</span>
                 <div className="flex items-baseline space-x-1">
-                  <span className="text-4xl font-black text-yellow-500 tracking-tighter">{priceCDF}</span>
-                  <span className="text-sm font-bold text-yellow-500">CDF</span>
+                  <span className="text-4xl font-black text-yellow-500 tracking-tighter">{priceUSD}</span>
+                  <span className="text-sm font-bold text-yellow-500">USD</span>
                 </div>
               </div>
               <div className="bg-white/5 px-4 py-2 rounded-full border border-white/5">
@@ -202,7 +202,7 @@ export default function CheckoutClient({ event, userProfile }: { event: any, use
               />
               <div className="bg-white/5 p-3 rounded-xl border border-white/5">
                 <p className="text-[10px] text-neutral-500 text-center leading-tight">
-                  Réglez <span className="text-white font-black">{priceCDF} CDF</span> cash à l'entrée.
+                  Réglez <span className="text-white font-black">{priceUSD} USD</span> cash à l'entrée.
                 </p>
               </div>
               <button

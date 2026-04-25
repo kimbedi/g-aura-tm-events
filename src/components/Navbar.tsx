@@ -46,14 +46,14 @@ export default function Navbar({ user, profile }: NavbarProps) {
         <div className="hidden md:flex items-center space-x-4">
           <div className="flex items-center space-x-2 text-neutral-400 hover:text-white cursor-pointer transition-colors">
             <Globe className="w-4 h-4" />
-            <span className="text-xs font-semibold">FR | CDF</span>
+            <span className="text-xs font-semibold">FR | USD</span>
           </div>
 
           {user ? (
             <div className="flex items-center space-x-3">
               {/* Golden pill button - links to dashboard if admin, my-tickets if user */}
               <Link
-                href={isAdmin ? (profile?.role === "super_admin" ? "/super-admin" : "/admin") : "/tickets"}
+                href={isAdmin ? "/admin" : "/tickets"}
                 className="flex items-center space-x-2 text-sm font-medium bg-gradient-to-r from-yellow-500 to-yellow-600 text-black px-5 py-2 rounded-full hover:opacity-90 transition-opacity"
               >
                 <LayoutDashboard className="w-4 h-4" />
@@ -109,7 +109,7 @@ export default function Navbar({ user, profile }: NavbarProps) {
             <div className="flex flex-col space-y-3">
               {isAdmin && (
                 <Link
-                  href={profile?.role === "super_admin" ? "/super-admin" : "/admin"}
+                  href="/admin"
                   className="flex items-center space-x-4 p-4 bg-yellow-500/10 rounded-2xl border border-yellow-500/20 group"
                   onClick={() => setIsOpen(false)}
                 >
@@ -128,7 +128,7 @@ export default function Navbar({ user, profile }: NavbarProps) {
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-2 text-neutral-400">
                 <Globe className="w-5 h-5" />
-                <span>FR | CDF</span>
+                <span>FR | USD</span>
               </div>
               <Link href="/login" className="text-white px-4 py-2 bg-white/10 rounded-full" onClick={() => setIsOpen(false)}>
                 Connexion

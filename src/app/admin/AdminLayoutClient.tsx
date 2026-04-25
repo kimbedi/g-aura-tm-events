@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { LayoutDashboard, CheckSquare, QrCode, LogOut, FileText, Users, Calendar, Camera, ShoppingBag } from "lucide-react";
+import { LayoutDashboard, CheckSquare, QrCode, LogOut, FileText, Users, Calendar, Camera, ShoppingBag, Landmark } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -17,6 +17,7 @@ export default function AdminLayout({ children, role, userName }: { children: Re
     { name: "Scanner", href: "/admin/scanner", icon: QrCode, roles: ["super_admin", "admin", "manager", "scanner", "moderator"] },
     { name: "Billets", href: "/admin/tickets", icon: FileText, roles: ["super_admin", "admin", "moderator"] },
     { name: "Membres", href: "/admin/members", icon: Users, roles: ["super_admin", "admin", "moderator"] },
+    { name: "Commissions", href: "/admin/commissions", icon: Landmark, roles: ["super_admin"] },
   ];
 
   const filteredItems = NAV_ITEMS.filter(item => item.roles.includes(role));

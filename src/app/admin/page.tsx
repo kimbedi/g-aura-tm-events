@@ -46,7 +46,7 @@ export default async function AdminDashboard() {
             </div>
             <div>
               <div className="text-[10px] text-neutral-500 uppercase font-black tracking-widest leading-none mb-1">Chiffre d'Affaires</div>
-              <div className="text-lg font-black text-white leading-none">{stats.totalRevenue.toLocaleString()} <span className="text-[10px] text-neutral-400">CDF</span></div>
+              <div className="text-lg font-black text-white leading-none">{stats.totalRevenue.toLocaleString()} <span className="text-[10px] text-neutral-400">USD</span></div>
             </div>
           </div>
         )}
@@ -106,7 +106,7 @@ export default async function AdminDashboard() {
               <div className="relative z-10">
                 <div className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.2em] mb-4">Commissions Dues</div>
                 <div className={`text-5xl font-black tracking-tighter mb-2 ${totalDue >= 50 ? "text-red-500" : "text-white"}`}>
-                  {totalDue.toLocaleString()} <span className="text-sm font-black opacity-50">CDF</span>
+                  {totalDue.toLocaleString()} <span className="text-sm font-black opacity-50">USD</span>
                 </div>
                 <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">
                   Dette envers la plateforme
@@ -127,7 +127,7 @@ export default async function AdminDashboard() {
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="font-black text-white group-hover:text-yellow-500 transition-colors uppercase tracking-tight line-clamp-1">{event.title}</h3>
                   {!isManager && (
-                    <div className="text-sm font-black text-white">{event.revenue.toLocaleString()} <span className="text-[10px] opacity-50">CDF</span></div>
+                    <div className="text-sm font-black text-white">{event.revenue.toLocaleString()} <span className="text-[10px] opacity-50">USD</span></div>
                   )}
                 </div>
                 <div className="flex items-center space-x-6">
