@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import Image from "next/image";
 import { Menu, X, Globe, User, Ticket, LogOut, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
@@ -20,11 +20,15 @@ export default function Navbar({ user, profile }: NavbarProps) {
     <nav className="fixed top-0 w-full z-50 bg-black/50 backdrop-blur-md border-b border-white/5">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-          <img 
-            src="/Assets/logos/long-G-Aura-Events.png" 
-            alt="G-Aura TM Events" 
-            className="h-12 w-auto object-contain"
-          />
+          <div className="relative h-12 w-48">
+            <Image 
+              src="/Assets/logos/long-G-Aura-Events.png" 
+              alt="G-Aura TM Events" 
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
         </Link>
 
         {/* Desktop Menu */}

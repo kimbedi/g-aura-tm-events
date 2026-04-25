@@ -1,7 +1,5 @@
 "use client";
 
-/* Force Rebuild 1.1 */
-import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { LayoutDashboard, CheckSquare, QrCode, LogOut, FileText, Users, Calendar, Camera, ShoppingBag } from "lucide-react";
 import Link from "next/link";
@@ -9,55 +7,6 @@ import { usePathname } from "next/navigation";
 
 export default function AdminLayout({ children, role, userName }: { children: React.ReactNode, role: string, userName?: string }) {
   const pathname = usePathname();
-
-  useEffect(() => {
-    const style = document.createElement('style');
-    style.id = 'scrollbar-style';
-    style.innerHTML = `
-      /* KILL ARROWS DEFINITIVELY */
-      ::-webkit-scrollbar-button {
-        display: none !important;
-        width: 0 !important;
-        height: 0 !important;
-      }
-      
-      ::-webkit-scrollbar {
-        width: 14px !important;
-        height: 14px !important;
-      }
-      
-      ::-webkit-scrollbar-track {
-        background: transparent !important;
-      }
-      
-      ::-webkit-scrollbar-thumb {
-        background-color: #eab308 !important;
-        /* Magic for INSIDE look: thick transparent border */
-        border: 5px solid transparent !important;
-        background-clip: padding-box !important;
-        border-radius: 20px !important;
-      }
-      
-      ::-webkit-scrollbar-thumb:hover {
-        background-color: #facc15 !important;
-      }
-      
-      ::-webkit-scrollbar-corner {
-        background: transparent !important;
-      }
-
-      /* Force overlay mode so scrollbar floats OVER content (inside the box) */
-      * {
-        scrollbar-width: thin !important;
-        scrollbar-color: #eab308 transparent !important;
-      }
-    `;
-    document.head.appendChild(style);
-    return () => {
-      const existingStyle = document.getElementById('scrollbar-style');
-      if (existingStyle) document.head.removeChild(existingStyle);
-    };
-  }, []);
 
   const NAV_ITEMS = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard, roles: ["super_admin", "admin", "manager", "moderator"] },

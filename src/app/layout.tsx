@@ -24,48 +24,6 @@ export const metadata: Metadata = {
   },
 };
 
-const scrollbarStyles = `
-  /* Force Overlay mode */
-  html, body, * {
-    overflow-y: overlay !important;
-    scrollbar-width: thin !important;
-    scrollbar-color: #eab308 transparent !important;
-  }
-
-  /* Reset all webkit scrollbars */
-  ::-webkit-scrollbar {
-    width: 6px !important;
-    height: 6px !important;
-    background-color: transparent !important;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: transparent !important;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background-color: #eab308 !important;
-    border-radius: 10px !important;
-    /* This makes it look "inside" because it floats over content */
-    border: 1px solid rgba(0,0,0,0.1) !important;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background-color: #facc15 !important;
-  }
-
-  /* KILL ARROWS AT THE ROOT */
-  ::-webkit-scrollbar-button {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-  }
-
-  ::-webkit-scrollbar-corner {
-    background: transparent !important;
-  }
-`;
-
 export default async function RootLayout({
   children,
 }: Readonly<{

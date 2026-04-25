@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import Image from "next/image";
 import { ArrowRight, Ticket, Calendar, MapPin, Star } from "lucide-react";
 import Link from "next/link";
 
@@ -64,13 +64,16 @@ export default function HomeClient({ featuredEvent }: HomeClientProps) {
             <motion.div
               animate={{ y: [0, -15, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="relative z-10"
+              className="relative z-10 w-full max-w-[280px] sm:max-w-[320px] md:max-w-[400px] lg:max-w-[480px]"
               style={{ filter: "drop-shadow(0 20px 60px rgba(234, 179, 8, 0.2))" }}
             >
-              <img 
+              <Image 
                 src="/Assets/logos/G-Aura-Events.png" 
                 alt="G-Aura Events" 
-                className="w-full max-w-[280px] sm:max-w-[320px] md:max-w-[400px] lg:max-w-[480px] h-auto object-contain"
+                width={480}
+                height={480}
+                className="w-full h-auto object-contain"
+                priority
               />
             </motion.div>
           </motion.div>
