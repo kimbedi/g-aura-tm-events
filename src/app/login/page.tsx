@@ -3,11 +3,12 @@
 import { login } from "@/app/actions/auth";
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Lock } from "lucide-react";
+import { Lock, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (formData: FormData) => {
     setIsLoading(true);
@@ -49,12 +50,21 @@ export default function LoginPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-neutral-400 mb-1">Mot de passe</label>
-            <input 
-              type="password" 
-              name="password" 
-              required 
-              className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors"
-            />
+            <div className="relative">
+              <input 
+                type={showPassword ? "text" : "password"}
+                name="password" 
+                required 
+                className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 pr-12 text-white focus:outline-none focus:border-yellow-500 transition-colors"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition-colors p-1"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
 
           <button 
