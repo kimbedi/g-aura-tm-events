@@ -45,20 +45,26 @@ export default function AdminEventsPage() {
     setIsSubmitting(true);
     const formData = new FormData(e.currentTarget);
     formData.append("categories", JSON.stringify(newCategories));
-    
+
     try {
-      if (editingEvent) {
-        await updateEvent(editingEvent.id, formData);
-      } else {
-        await createEvent(formData);
+      const result = editingEvent
+        ? await updateEvent(editingEvent.id, formData)
+        : await createEvent(formData);
+
+      // updateEvent returns { success, error? }; createEvent throws on failure.
+      // Normalize: anything with .error means we surface it and stay in the modal.
+      if (result && (result as any).error) {
+        alert((result as any).error);
+        return;
       }
+
       setIsModalOpen(false);
       setEditingEvent(null);
       setPreviewUrl(null);
       setNewCategories([{ name: "Standard", price_usd: 20, capacity: 100 }]);
       await loadEvents();
     } catch (err: any) {
-      alert(err.message);
+      alert(err?.message || "Erreur inconnue lors de l'enregistrement.");
     } finally {
       setIsSubmitting(false);
     }

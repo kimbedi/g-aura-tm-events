@@ -123,139 +123,151 @@ export async function deleteEvent(id: string) {
   return { success: true };
 }
 
-export async function updateEvent(id: string, formData: FormData) {
-  console.log("Début updateEvent pour ID:", id);
-  const adminSupabase = createAdminClient();
-  
-  const title = formData.get("title") as string;
-  const description = formData.get("description") as string;
-  const location = formData.get("location") as string;
-  const dateTime = formData.get("dateTime") as string;
-  const isPremium = formData.get("isPremium") === "true";
-  const file = formData.get("flyer") as File;
-  
-  let updateData: any = {
-    title,
-    description,
-    location,
-    date_time: dateTime,
-    is_premium: isPremium,
-    updated_at: new Date().toISOString()
-  };
+// Returns { success, error? } so the client can surface the real message.
+// We avoid `throw` because Next masks server-action error messages in
+// production, leaving users with the generic "An error occurred in the
+// Server Components render" alert.
+export async function updateEvent(
+  id: string,
+  formData: FormData
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const adminSupabase = createAdminClient();
 
-  if (file && file.size > 0) {
-    console.log("Changement de flyer détecté...");
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
-    const arrayBuffer = await file.arrayBuffer();
+    const title = formData.get("title") as string;
+    const description = formData.get("description") as string;
+    const location = formData.get("location") as string;
+    const dateTime = formData.get("dateTime") as string;
+    const isPremium = formData.get("isPremium") === "true";
+    const file = formData.get("flyer") as File;
 
-    const { error: uploadError } = await adminSupabase.storage
-      .from("flyers")
-      .upload(fileName, arrayBuffer, {
-        contentType: file.type,
-        upsert: true
-      });
-      
-    if (!uploadError) {
-      const { data: { publicUrl } } = adminSupabase.storage
+    const updateData: Record<string, unknown> = {
+      title,
+      description,
+      location,
+      date_time: dateTime,
+      is_premium: isPremium,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (file && file.size > 0) {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const arrayBuffer = await file.arrayBuffer();
+
+      const { error: uploadError } = await adminSupabase.storage
         .from("flyers")
-        .getPublicUrl(fileName);
-      updateData.image_url = publicUrl;
-      console.log("Nouveau flyer uploadé:", publicUrl);
-    } else {
-      console.error("Erreur upload flyer:", uploadError);
-    }
-  }
+        .upload(fileName, arrayBuffer, {
+          contentType: file.type,
+          upsert: true,
+        });
 
-  console.log("Envoi des données à Supabase:", updateData);
-  const { error } = await adminSupabase
-    .from("events")
-    .update(updateData)
-    .eq("id", id);
-
-  if (error) {
-    console.error("Erreur SQL Update Event:", error);
-    throw new Error(error.message);
-  }
-
-  // Categories update — diff against the existing rows so we don't blindly
-  // delete-and-reinsert. The previous version would silently duplicate rows
-  // whenever the DELETE failed (e.g. an FK from issued_tickets/orders).
-  const categoriesRaw = formData.get("categories");
-  if (categoriesRaw) {
-    const submitted: Array<{ id?: string; name: string; price_usd: number | string; capacity: number | string }> =
-      JSON.parse(categoriesRaw as string);
-
-    // 1. Pull current state from DB
-    const { data: existing, error: fetchError } = await adminSupabase
-      .from("ticket_categories")
-      .select("id")
-      .eq("event_id", id);
-
-    if (fetchError) {
-      console.error("Erreur fetch existing categories:", fetchError);
-      throw new Error("Impossible de lire les catégories existantes : " + fetchError.message);
-    }
-
-    const existingIds = new Set((existing ?? []).map((c) => c.id));
-    const submittedIds = new Set(submitted.filter((c) => c.id).map((c) => c.id as string));
-
-    // 2. Categories removed in the UI → delete from DB
-    const idsToDelete = [...existingIds].filter((eid) => !submittedIds.has(eid));
-    if (idsToDelete.length > 0) {
-      const { error: delError } = await adminSupabase
-        .from("ticket_categories")
-        .delete()
-        .in("id", idsToDelete);
-      if (delError) {
-        console.error("Erreur delete categories:", delError);
-        // Most common cause: FK from issued_tickets (ON DELETE RESTRICT).
-        throw new Error(
-          "Impossible de supprimer une catégorie déjà liée à des billets émis. " +
-            "Annule plutôt l'événement ou crée une nouvelle catégorie."
-        );
+      if (uploadError) {
+        return { success: false, error: "Upload du flyer impossible : " + uploadError.message };
       }
+      const {
+        data: { publicUrl },
+      } = adminSupabase.storage.from("flyers").getPublicUrl(fileName);
+      updateData.image_url = publicUrl;
     }
 
-    // 3. Categories with an id and still present → update in place
-    const toUpdate = submitted.filter((c) => c.id && existingIds.has(c.id));
-    for (const cat of toUpdate) {
-      const { error: updError } = await adminSupabase
+    const { error: eventUpdError } = await adminSupabase
+      .from("events")
+      .update(updateData)
+      .eq("id", id);
+
+    if (eventUpdError) {
+      return { success: false, error: "Mise à jour de l'événement : " + eventUpdError.message };
+    }
+
+    // Categories update — diff against the existing rows so we don't blindly
+    // delete-and-reinsert.
+    const categoriesRaw = formData.get("categories");
+    if (categoriesRaw) {
+      const submitted: Array<{
+        id?: string;
+        name: string;
+        price_usd: number | string;
+        capacity: number | string;
+      }> = JSON.parse(categoriesRaw as string);
+
+      const { data: existing, error: fetchError } = await adminSupabase
         .from("ticket_categories")
-        .update({
+        .select("id")
+        .eq("event_id", id);
+
+      if (fetchError) {
+        return {
+          success: false,
+          error: "Lecture des catégories existantes : " + fetchError.message,
+        };
+      }
+
+      const existingIds = new Set((existing ?? []).map((c) => c.id));
+      const submittedIds = new Set(
+        submitted.filter((c) => c.id).map((c) => c.id as string)
+      );
+
+      // 1. DELETE rows removed in the UI
+      const idsToDelete = [...existingIds].filter((eid) => !submittedIds.has(eid));
+      if (idsToDelete.length > 0) {
+        const { error: delError } = await adminSupabase
+          .from("ticket_categories")
+          .delete()
+          .in("id", idsToDelete);
+        if (delError) {
+          return {
+            success: false,
+            error:
+              "Suppression d'une catégorie impossible (probablement liée à des billets émis) : " +
+              delError.message,
+          };
+        }
+      }
+
+      // 2. UPDATE rows that kept their id
+      for (const cat of submitted.filter((c) => c.id && existingIds.has(c.id))) {
+        const { error: updError } = await adminSupabase
+          .from("ticket_categories")
+          .update({
+            name: cat.name,
+            price_usd: Number(cat.price_usd),
+            capacity: Number(cat.capacity),
+          })
+          .eq("id", cat.id!);
+        if (updError) {
+          return {
+            success: false,
+            error: `Mise à jour de la catégorie "${cat.name}" : ${updError.message}`,
+          };
+        }
+      }
+
+      // 3. INSERT brand-new rows
+      const toInsert = submitted
+        .filter((c) => !c.id)
+        .map((cat) => ({
           name: cat.name,
           price_usd: Number(cat.price_usd),
           capacity: Number(cat.capacity),
-        })
-        .eq("id", cat.id!);
-      if (updError) {
-        console.error("Erreur update category:", updError);
-        throw new Error("Erreur mise à jour catégorie : " + updError.message);
+          event_id: id,
+        }));
+      if (toInsert.length > 0) {
+        const { error: insError } = await adminSupabase
+          .from("ticket_categories")
+          .insert(toInsert);
+        if (insError) {
+          return { success: false, error: "Création des catégories : " + insError.message };
+        }
       }
     }
 
-    // 4. New categories (no id) → insert
-    const toInsert = submitted
-      .filter((c) => !c.id)
-      .map((cat) => ({
-        name: cat.name,
-        price_usd: Number(cat.price_usd),
-        capacity: Number(cat.capacity),
-        event_id: id,
-      }));
-    if (toInsert.length > 0) {
-      const { error: insError } = await adminSupabase
-        .from("ticket_categories")
-        .insert(toInsert);
-      if (insError) {
-        console.error("Erreur insert categories:", insError);
-        throw new Error("Erreur création catégorie : " + insError.message);
-      }
-    }
+    revalidatePath("/admin/events");
+    revalidatePath("/");
+    return { success: true };
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "Erreur inconnue";
+    console.error("updateEvent crash:", e);
+    return { success: false, error: message };
   }
-
-  console.log("✅ Mise à jour réussie !");
-  revalidatePath("/admin/events");
-  revalidatePath("/");
-  return { success: true };
 }
