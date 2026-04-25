@@ -60,5 +60,5 @@ export async function validateOrder(orderId: string) {
   if (ticketError) return { error: "Failed to generate ticket" };
 
   revalidatePath("/admin/payments");
-  return { success: true };
+  return { success: true, qrHash };
 }

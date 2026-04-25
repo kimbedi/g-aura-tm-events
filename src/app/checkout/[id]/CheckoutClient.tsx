@@ -116,6 +116,17 @@ export default function CheckoutClient({ event }: { event: any }) {
             className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors mb-6"
           />
 
+          <label className="block text-sm font-medium text-neutral-400 mb-2 mt-4">
+            Numéro WhatsApp (Pour recevoir le billet)
+          </label>
+          <input
+            type="text"
+            name="customerPhone"
+            required
+            placeholder="+243..."
+            className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors mb-6"
+          />
+
           <button
             type="submit"
             disabled={isSubmitting}
