@@ -53,7 +53,7 @@ export default async function AdminDashboard() {
       </header>
 
       {/* Main Stats Grid - 2 columns for manager, 4 for admin */}
-      <div className={`grid grid-cols-1 md:grid-cols-${isManager ? '2' : '4'} gap-6 mb-12`}>
+      <div className={`grid grid-cols-1 ${isManager ? 'md:grid-cols-2' : 'md:grid-cols-4'} gap-6 mb-12`}>
         <div className="p-8 bg-neutral-900 border border-white/5 rounded-[2.5rem] relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform duration-500">
             <Ticket className="w-24 h-24 text-yellow-500" />
