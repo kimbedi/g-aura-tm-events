@@ -99,11 +99,9 @@ export default function Navbar({ user, profile }: NavbarProps) {
           <Link href="/events" className="text-lg font-medium text-white" onClick={() => setIsOpen(false)}>Événements</Link>
           <Link href="/merch" className="text-lg font-medium text-white" onClick={() => setIsOpen(false)}>Boutique Merch</Link>
           <Link href="/gallery" className="text-lg font-medium text-white" onClick={() => setIsOpen(false)}>Galerie</Link>
-          {user && (
-            <Link href="/tickets" className="text-lg font-medium text-yellow-500" onClick={() => setIsOpen(false)}>
-              🎟 Mes Billets
-            </Link>
-          )}
+          <Link href="/tickets" className="text-lg font-medium text-yellow-500" onClick={() => setIsOpen(false)}>
+            🎟 Mes Billets
+          </Link>
           <hr className="border-white/10" />
           {user ? (
             <div className="flex flex-col space-y-3">
