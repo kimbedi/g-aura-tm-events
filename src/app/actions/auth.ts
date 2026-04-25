@@ -10,7 +10,7 @@ export async function login(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data: { user }, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
@@ -19,8 +19,19 @@ export async function login(formData: FormData) {
     return { error: error.message };
   }
 
+  // Fetch role from profiles table
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user!.id)
+    .single();
+
   revalidatePath("/", "layout");
-  redirect("/admin");
+  
+  const role = profile?.role;
+  if (role === "super_admin") redirect("/super-admin");
+  if (role === "admin" || role === "manager" || role === "scanner") redirect("/admin");
+  redirect("/my-tickets"); // Regular users go to their tickets
 }
 
 export async function signup(formData: FormData) {
