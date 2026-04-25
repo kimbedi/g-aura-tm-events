@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Smartphone, CheckCircle2, Loader2, ArrowRight, Calendar, Clock, MapPin } from "lucide-react";
 import { submitOrder } from "@/app/actions/checkout";
+import { formatNumber } from "@/utils/format";
 
 export default function CheckoutClient({ event, userProfile }: { event: any, userProfile: any }) {
   // Sort categories by price ascending
@@ -12,7 +13,7 @@ export default function CheckoutClient({ event, userProfile }: { event: any, use
   const [selectedMethod, setSelectedMethod] = useState<string>("mobile");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const priceCDF = selectedCategory ? selectedCategory.price_usd.toLocaleString() : "0";
+  const priceCDF = selectedCategory ? formatNumber(selectedCategory.price_usd) : "0";
 
   const handleSubmit = async (formData: FormData) => {
     if (!selectedCategory) return alert("Veuillez choisir une catégorie");
@@ -93,7 +94,7 @@ export default function CheckoutClient({ event, userProfile }: { event: any, use
                       {cat.name}
                     </span>
                     <span className="block text-xl font-black text-white">
-                      {cat.price_usd.toLocaleString()} <span className="text-[10px] text-neutral-500">CDF</span>
+                      {formatNumber(cat.price_usd)} <span className="text-[10px] text-neutral-500">CDF</span>
                     </span>
                     {selectedCategory?.id === cat.id && (
                       <div className="absolute top-3 right-3">

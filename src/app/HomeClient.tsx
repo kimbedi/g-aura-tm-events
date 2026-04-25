@@ -4,6 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, Ticket, Calendar, MapPin, Star } from "lucide-react";
 import Link from "next/link";
+import { formatDateTime } from "@/utils/format";
 
 interface HomeClientProps {
   featuredEvent: any;
@@ -104,13 +105,7 @@ export default function HomeClient({ featuredEvent }: HomeClientProps) {
                     <div className="flex items-center justify-center md:justify-start space-x-2">
                       <Calendar className="w-4 h-4 text-yellow-500" />
                       <span className="text-sm">
-                        {new Date(featuredEvent.date_time).toLocaleDateString('fr-FR', { 
-                          day: 'numeric', 
-                          month: 'long', 
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+                        {formatDateTime(featuredEvent.date_time)}
                       </span>
                     </div>
                     <div className="flex items-center justify-center md:justify-start space-x-2">

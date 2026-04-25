@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import EventCard from "@/components/EventCard";
+import { formatDate } from "@/utils/format";
 
 export default function EventsGrid({ events }: { events: any[] }) {
   if (!events || events.length === 0) {
@@ -20,7 +21,7 @@ export default function EventsGrid({ events }: { events: any[] }) {
           <EventCard 
             id={event.id}
             title={event.title}
-            date={new Date(event.date_time).toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            date={formatDate(event.date_time, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
             location={event.location}
             imageUrl={event.image_url}
             isPremium={event.is_premium}

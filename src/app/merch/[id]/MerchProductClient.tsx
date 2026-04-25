@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, Check, Info, Smartphone, Banknote, ShieldCheck, ArrowLeft, Loader2, Star } from "lucide-react";
 import Link from "next/link";
 import { submitMerchOrder } from "@/app/actions/merch";
+import { formatNumber } from "@/utils/format";
 
 export default function MerchProductClient({ product }: { product: any }) {
   const [selectedVariant, setSelectedVariant] = useState<any>(product.merch_variants?.[0] || null);
@@ -102,7 +103,7 @@ export default function MerchProductClient({ product }: { product: any }) {
 
         <h1 className="text-5xl font-black tracking-tighter uppercase mb-4 leading-tight">{product.name}</h1>
         <div className="text-3xl font-black text-white mb-8">
-          {Number(product.base_price_usd).toLocaleString()} <span className="text-sm font-medium text-neutral-500">CDF</span>
+          {formatNumber(product.base_price_usd)} <span className="text-sm font-medium text-neutral-500">CDF</span>
         </div>
 
         <p className="text-neutral-400 mb-10 leading-relaxed font-medium">{product.description}</p>
@@ -223,7 +224,7 @@ export default function MerchProductClient({ product }: { product: any }) {
                 <div className="pt-6">
                   <div className="flex items-center justify-between mb-8">
                     <span className="text-neutral-500 font-bold uppercase tracking-widest text-[10px]">Total à régler</span>
-                    <span className="text-2xl font-black text-white">{(product.base_price_usd * quantity).toLocaleString()} <span className="text-xs">CDF</span></span>
+                    <span className="text-2xl font-black text-white">{formatNumber(product.base_price_usd * quantity)} <span className="text-xs">CDF</span></span>
                   </div>
 
                   <button 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Plus, Trash2, Tag, Package, Image as ImageIcon, Loader2, X, PlusCircle } from "lucide-react";
 import { addMerchProduct, deleteMerchProduct, addVariant } from "@/app/actions/merch_admin";
+import { formatNumber } from "@/utils/format";
 import { createClient } from "@/utils/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -116,7 +117,7 @@ export default function MerchAdminClient({ initialProducts }: { initialProducts:
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
                   <h2 className="text-2xl font-black text-white uppercase tracking-tighter">{product.name}</h2>
-                  <div className="text-xl font-black text-yellow-500">{Number(product.base_price_usd).toLocaleString()} CDF</div>
+                  <div className="text-xl font-black text-yellow-500">{formatNumber(product.base_price_usd)} CDF</div>
                 </div>
                 <p className="text-neutral-500 text-sm mb-6 max-w-xl">{product.description}</p>
 
