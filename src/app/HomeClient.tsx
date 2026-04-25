@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowRight, Ticket, Calendar, MapPin, Star } from "lucide-react";
+import { ArrowRight, Camera, Calendar, MapPin, Star, LayoutGrid } from "lucide-react";
 import Link from "next/link";
 import { formatDateTime } from "@/utils/format";
 
@@ -40,16 +40,19 @@ export default function HomeClient({ featuredEvent }: HomeClientProps) {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
-              <Link href={featuredEvent ? `/checkout/${featuredEvent.id}` : "/events"} className="w-full sm:w-auto">
+              <Link href="/gallery" className="w-full sm:w-auto">
                 <button className="w-full flex items-center justify-center space-x-2 bg-yellow-500 hover:bg-yellow-400 text-black px-8 py-4 rounded-full font-bold transition-all transform hover:scale-105 active:scale-95">
-                  <Ticket className="w-5 h-5" />
-                  <span>Réserver</span>
+                  <Camera className="w-5 h-5" />
+                  <span>Galerie</span>
                 </button>
               </Link>
-              <button className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/5 text-white px-8 py-4 rounded-full font-medium transition-all backdrop-blur-md">
-                <span>Catalogue</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              <Link href="/events" className="w-full sm:w-auto">
+                <button className="w-full flex items-center justify-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/5 text-white px-8 py-4 rounded-full font-medium transition-all backdrop-blur-md">
+                  <LayoutGrid className="w-5 h-5" />
+                  <span>Catalogue</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </Link>
             </div>
           </motion.div>
 
