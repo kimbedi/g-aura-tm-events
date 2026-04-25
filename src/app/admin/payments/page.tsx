@@ -1,23 +1,16 @@
-"use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, XCircle, Search, Clock } from "lucide-react";
+import { getPendingOrders, validateOrder } from "@/app/actions/admin";
+import { revalidatePath } from "next/cache";
 
-// Données fictives simulant les achats en attente
-const DUMMY_PENDING = [
-  { id: "1", customer: "Jean Dupont", method: "M-Pesa", ref: "9X7Y6Z5", amount: "100 USD", time: "Il y a 5 min", ticket: "VIP" },
-  { id: "2", customer: "Sarah K.", method: "Airtel Money", ref: "A1B2C3D", amount: "50 USD", time: "Il y a 12 min", ticket: "Standard" },
-  { id: "3", customer: "Marc L.", method: "Orange Money", ref: "O-987654", amount: "100 USD", time: "Il y a 25 min", ticket: "VIP" },
-];
+export default async function PaymentsValidationPage() {
+  const pendingOrders = await getPendingOrders();
 
-export default function PaymentsValidationPage() {
-  const [payments, setPayments] = useState(DUMMY_PENDING);
-
-  const handleValidate = (id: string) => {
-    // Animation out
-    setPayments(payments.filter(p => p.id !== id));
-    // Ici, une requête API générera le billet et enverra l'email
+  const handleValidate = async (formData: FormData) => {
+    "use server";
+    const id = formData.get("orderId") as string;
+    await validateOrder(id);
+    revalidatePath("/admin/payments");
   };
 
   return (
@@ -42,50 +35,50 @@ export default function PaymentsValidationPage() {
       </div>
 
       <div className="space-y-4">
-        <AnimatePresence>
-          {payments.length === 0 && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-neutral-500">
+          {(!pendingOrders || pendingOrders.length === 0) && (
+            <div className="text-center py-20 text-neutral-500">
               Aucun paiement en attente. Beau travail !
-            </motion.div>
+            </div>
           )}
-          {payments.map((p) => (
-            <motion.div
+          {pendingOrders && pendingOrders.map((p: any) => (
+            <div
               key={p.id}
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95, height: 0, marginBottom: 0 }}
               className="bg-neutral-900 border border-white/5 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
             >
               <div className="flex-1">
                 <div className="flex items-center space-x-3 mb-2">
                   <span className="bg-yellow-500/20 text-yellow-500 text-xs font-bold px-2 py-1 rounded uppercase">
-                    {p.method}
+                    {p.payment_method}
                   </span>
-                  <span className="text-sm text-neutral-400">{p.time}</span>
+                  <span className="text-sm text-neutral-400">
+                    {new Date(p.created_at).toLocaleString('fr-FR')}
+                  </span>
                 </div>
                 <div className="text-lg font-bold text-white mb-1">
-                  Réf: <span className="font-mono text-yellow-500">{p.ref}</span>
+                  Réf: <span className="font-mono text-yellow-500">{p.payment_reference || "N/A"}</span>
                 </div>
                 <div className="text-sm text-neutral-300">
-                  {p.customer} a envoyé <span className="font-bold">{p.amount}</span> pour 1x Billet {p.ticket}
+                  {p.customer_name} a envoyé <span className="font-bold">{p.total_price_usd} USD</span> pour {p.events?.title}
                 </div>
               </div>
 
               <div className="flex w-full md:w-auto items-center space-x-3 pt-4 md:pt-0 border-t border-white/5 md:border-t-0">
-                <button 
-                  onClick={() => handleValidate(p.id)}
-                  className="flex-1 md:flex-none flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-black px-6 py-3 rounded-xl font-bold transition-colors"
-                >
-                  <ShieldCheck className="w-5 h-5" />
-                  <span>Valider</span>
-                </button>
+                <form action={handleValidate} className="flex-1 md:flex-none">
+                  <input type="hidden" name="orderId" value={p.id} />
+                  <button 
+                    type="submit"
+                    className="w-full flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-black px-6 py-3 rounded-xl font-bold transition-colors"
+                  >
+                    <ShieldCheck className="w-5 h-5" />
+                    <span>Valider</span>
+                  </button>
+                </form>
                 <button className="flex items-center justify-center w-12 h-12 bg-neutral-800 hover:bg-red-500/20 hover:text-red-500 text-neutral-400 rounded-xl transition-colors">
                   <XCircle className="w-5 h-5" />
                 </button>
               </div>
-            </motion.div>
+            </div>
           ))}
-        </AnimatePresence>
       </div>
     </div>
   );

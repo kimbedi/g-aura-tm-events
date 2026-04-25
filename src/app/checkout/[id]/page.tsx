@@ -4,20 +4,30 @@ import { motion } from "framer-motion";
 import { CheckCircle2, Ticket, ShieldAlert } from "lucide-react";
 import { useState } from "react";
 
+import { submitOrder } from "@/app/actions/checkout";
+
 export default function CheckoutPage({ params }: { params: { id: string } }) {
   const [selectedMethod, setSelectedMethod] = useState<string>("mpesa");
-  const [refCode, setRefCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (formData: FormData) => {
     setIsSubmitting(true);
-    // Simulation API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    formData.append("eventId", params.id);
+    formData.append("method", selectedMethod);
+    
+    // Add dummy customer data since we don't have auth required yet for checkout
+    formData.append("customerName", "Client (Via Web)");
+    formData.append("customerPhone", "+2430000000");
+
+    const result = await submitOrder(formData);
+    
+    setIsSubmitting(false);
+    if (result?.success) {
       setIsSuccess(true);
-    }, 2000);
+    } else {
+      alert("Erreur lors de la soumission de la commande.");
+    }
   };
 
   if (isSuccess) {
@@ -82,16 +92,15 @@ export default function CheckoutPage({ params }: { params: { id: string } }) {
               </p>
               <div className="text-3xl font-mono tracking-wider font-bold mb-6">+243 81 000 0000</div>
               
-              <form onSubmit={handleSubmit}>
+              <form action={handleSubmit}>
                 <label className="block text-sm font-medium text-neutral-400 mb-2">
                   Code de référence de la transaction (SMS)
                 </label>
                 <input
                   type="text"
+                  name="refCode"
                   required
                   placeholder="Ex: 8X9Y7Z6W"
-                  value={refCode}
-                  onChange={(e) => setRefCode(e.target.value)}
                   className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors mb-6"
                 />
                 <button

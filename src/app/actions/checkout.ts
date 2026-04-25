@@ -1,0 +1,38 @@
+"use server";
+
+import { createClient } from "@/utils/supabase/server";
+import { revalidatePath } from "next/cache";
+
+export async function submitOrder(formData: FormData) {
+  const supabase = await createClient();
+
+  // Extract data from form
+  const eventId = formData.get("eventId") as string;
+  const method = formData.get("method") as string;
+  const refCode = formData.get("refCode") as string;
+  const customerName = formData.get("customerName") as string;
+  const customerPhone = formData.get("customerPhone") as string;
+
+  // In a real app, we'd fetch the ticket category and calculate price securely on the server
+  // For this MVP, we assume a static $100 VIP ticket
+  
+  // Insert into orders table
+  const { data, error } = await supabase.from("orders").insert({
+    event_id: eventId,
+    customer_name: customerName,
+    customer_phone: customerPhone,
+    payment_method: method,
+    payment_reference: refCode,
+    total_price_usd: 100.00,
+    quantity: 1
+    // ticket_category_id: ...
+  });
+
+  if (error) {
+    console.error("Order insertion error:", error);
+    return { error: "Failed to submit order" };
+  }
+
+  revalidatePath("/admin/payments");
+  return { success: true };
+}

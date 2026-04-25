@@ -14,10 +14,9 @@ export default function AdminDashboard() {
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
         {[
-          { label: "Revenu Total (USD)", value: "$12,450", icon: DollarSign, color: "text-white" },
-          { label: "Revenu Net (85%)", value: "$10,582.50", icon: Activity, color: "text-yellow-500" },
-          { label: "Billets Vendus", value: "342", icon: Ticket, color: "text-blue-400" },
-          { label: "En attente validation", value: "14", icon: Clock, color: "text-orange-400" }, // I will fix this missing import inline below
+          { label: "Revenus (USD)", value: "$10,582.50", icon: DollarSign, color: "text-yellow-500" },
+          { label: "Billets Vendus", value: "342", icon: Ticket, color: "text-white" },
+          { label: "En attente validation", value: "14", icon: Clock, color: "text-orange-400" },
         ].map((stat, i) => (
           <motion.div
             key={i}
