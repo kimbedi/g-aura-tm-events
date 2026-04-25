@@ -106,6 +106,9 @@ export default function MembersPage() {
                     <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
                       member.role === 'super_admin' ? 'bg-indigo-500/20 text-indigo-400' :
                       member.role === 'admin' ? 'bg-yellow-500/20 text-yellow-400' :
+                      member.role === 'moderator' ? 'bg-purple-500/20 text-purple-400' :
+                      member.role === 'manager' ? 'bg-blue-500/20 text-blue-400' :
+                      member.role === 'scanner' ? 'bg-green-500/20 text-green-400' :
                       'bg-neutral-800 text-neutral-400'
                     }`}>
                       {member.role === 'super_admin' ? 'DevTool' : member.role}
@@ -113,7 +116,7 @@ export default function MembersPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-2">
-                      <select 
+                      <select
                         value={member.role}
                         disabled={updatingId === member.id || member.role === 'super_admin' || member.id === currentUserId}
                         onChange={(e) => handleRoleChange(member.id, e.target.value)}
@@ -124,6 +127,7 @@ export default function MembersPage() {
                         <option value="user">Utilisateur</option>
                         <option value="scanner">Scanner</option>
                         <option value="manager">Manager</option>
+                        <option value="moderator">Modérateur</option>
                         {member.role === 'admin' && <option value="admin">Admin</option>}
                         {member.role === 'super_admin' && <option value="super_admin">DevTool</option>}
                       </select>
