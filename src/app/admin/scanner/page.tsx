@@ -3,22 +3,40 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { QrCode, ScanLine, XCircle, CheckCircle2 } from "lucide-react";
+import { scanTicket } from "@/app/actions/scanner";
 
 export default function ScannerApp() {
   const [scanStatus, setScanStatus] = useState<"idle" | "scanning" | "success" | "invalid">("idle");
   const [ticketData, setTicketData] = useState<any>(null);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const simulateScan = () => {
+  const handleScan = async (hashToScan: string) => {
     setScanStatus("scanning");
-    setTimeout(() => {
-      // Simulation: 80% chance of success
-      if (Math.random() > 0.2) {
-        setTicketData({ type: "VIP", owner: "Jean Dupont", id: "T-987654" });
+    
+    try {
+      const result = await scanTicket(hashToScan);
+      
+      if (result.success && result.data) {
+        setTicketData(result.data);
         setScanStatus("success");
       } else {
+        setErrorMessage(result.message || "Erreur de scan");
+        setTicketData(result.data || null); // Keep old data if it exists just to show who it belonged to
         setScanStatus("invalid");
       }
-    }, 1500);
+    } catch (error) {
+      setErrorMessage("Erreur réseau. Réessayez.");
+      setScanStatus("invalid");
+    }
+  };
+
+  const simulateScan = () => {
+    // Dans la vraie PWA, la librairie react-qr-scanner ou html5-qrcode va récupérer ce HASH depuis la caméra.
+    // Pour l'instant on simule avec un hash manuel ou un champ de texte.
+    const fakeHash = prompt("Entrez le HASH du billet à scanner :");
+    if (fakeHash) {
+      handleScan(fakeHash);
+    }
   };
 
   const resetScanner = () => {
@@ -96,7 +114,7 @@ export default function ScannerApp() {
               <XCircle className="w-20 h-20 mx-auto mb-4" />
               <h2 className="text-3xl font-black mb-2 uppercase">Billet Invalide</h2>
               <p className="font-medium opacity-90 mt-4">
-                Ce billet n'existe pas ou a déjà été scanné.
+                {errorMessage || "Ce billet n'existe pas ou a déjà été scanné."}
               </p>
             </div>
             <button 
