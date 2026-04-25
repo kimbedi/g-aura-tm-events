@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Html5QrcodeScanner } from "html5-qrcode";
 import { motion } from "framer-motion";
 import { QrCode, ScanLine, XCircle, CheckCircle2 } from "lucide-react";
 import { scanTicket } from "@/app/actions/scanner";
@@ -9,6 +10,34 @@ export default function ScannerApp() {
   const [scanStatus, setScanStatus] = useState<"idle" | "scanning" | "success" | "invalid">("idle");
   const [ticketData, setTicketData] = useState<any>(null);
   const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    let scanner: Html5QrcodeScanner | null = null;
+    
+    if (scanStatus === "idle" || scanStatus === "scanning") {
+      scanner = new Html5QrcodeScanner(
+        "reader",
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        /* verbose= */ false
+      );
+      
+      scanner.render(
+        (decodedText) => {
+          if (scanStatus !== "scanning") {
+            handleScan(decodedText);
+            scanner?.clear();
+          }
+        },
+        (error) => {
+          // Ignorer les erreurs de scan continu
+        }
+      );
+    }
+
+    return () => {
+      scanner?.clear().catch(e => console.error("Failed to clear scanner", e));
+    };
+  }, [scanStatus]);
 
   const handleScan = async (hashToScan: string) => {
     setScanStatus("scanning");
@@ -21,21 +50,12 @@ export default function ScannerApp() {
         setScanStatus("success");
       } else {
         setErrorMessage(result.message || "Erreur de scan");
-        setTicketData(result.data || null); // Keep old data if it exists just to show who it belonged to
+        setTicketData(result.data || null);
         setScanStatus("invalid");
       }
     } catch (error) {
       setErrorMessage("Erreur réseau. Réessayez.");
       setScanStatus("invalid");
-    }
-  };
-
-  const simulateScan = () => {
-    // Dans la vraie PWA, la librairie react-qr-scanner ou html5-qrcode va récupérer ce HASH depuis la caméra.
-    // Pour l'instant on simule avec un hash manuel ou un champ de texte.
-    const fakeHash = prompt("Entrez le HASH du billet à scanner :");
-    if (fakeHash) {
-      handleScan(fakeHash);
     }
   };
 
@@ -56,31 +76,12 @@ export default function ScannerApp() {
         </div>
       </header>
 
-      {/* Camera Viewport (Simulated) */}
+      {/* Camera Viewport */}
       <div className="flex-1 relative overflow-hidden flex items-center justify-center bg-neutral-950">
-        {scanStatus === "idle" || scanStatus === "scanning" ? (
-          <>
-            {/* Fake Camera Feed Background */}
-            <div className="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1540039155732-684736822262?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80')] bg-cover bg-center blur-sm" />
-            
-            <div className="relative z-10 w-64 h-64 border-2 border-yellow-500/50 rounded-3xl flex flex-col items-center justify-center">
-              {/* Animated Scan Line */}
-              <motion.div
-                animate={{ top: ["0%", "100%", "0%"] }}
-                transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-                className="absolute w-full h-0.5 bg-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.8)]"
-              />
-              <ScanLine className="w-12 h-12 text-yellow-500/50 mb-4" />
-              <p className="text-sm font-medium text-white/70">Pointez le QR Code</p>
-            </div>
-            
-            <button 
-              onClick={simulateScan}
-              className="absolute bottom-10 left-1/2 -translate-x-1/2 px-8 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full font-medium transition-all"
-            >
-              {scanStatus === "scanning" ? "Analyse..." : "Simuler un Scan"}
-            </button>
-          </>
+        {(scanStatus === "idle" || scanStatus === "scanning") ? (
+          <div className="w-full h-full flex items-center justify-center">
+            <div id="reader" className="w-full max-w-sm overflow-hidden rounded-3xl border-2 border-yellow-500/50" />
+          </div>
         ) : scanStatus === "success" ? (
           <motion.div 
             initial={{ scale: 0.8, opacity: 0 }}

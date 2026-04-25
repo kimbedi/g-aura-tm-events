@@ -90,7 +90,7 @@ export default function CheckoutPage({ params }: { params: { id: string } }) {
               <p className="text-sm text-neutral-300 mb-4">
                 Envoyez exactement <span className="font-bold text-white">100 USD</span> au numéro suivant via {selectedMethod} :
               </p>
-              <div className="text-3xl font-mono tracking-wider font-bold mb-6">+243 81 000 0000</div>
+              <div className="text-3xl font-mono tracking-wider font-bold mb-6">+243 99 300 2546</div>
               
               <form action={handleSubmit}>
                 <label className="block text-sm font-medium text-neutral-400 mb-2">
