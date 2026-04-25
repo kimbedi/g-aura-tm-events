@@ -1,95 +1,42 @@
-"use client";
+import { checkPlatformLockStatus } from "@/app/actions/commissions";
+import AdminLayoutClient from "./AdminLayoutClient";
+import { Lock, AlertOctagon } from "lucide-react";
 
-import { motion } from "framer-motion";
-import { LayoutDashboard, CheckSquare, QrCode, LogOut, FileText } from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const { isLocked, amountOwed } = await checkPlatformLockStatus();
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+  if (isLocked) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-red-950/50 border border-red-500/50 rounded-3xl p-8 text-center shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-2 bg-red-600 animate-pulse" />
+          
+          <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Lock className="w-10 h-10 text-red-500" />
+          </div>
+          
+          <h1 className="text-3xl font-black uppercase mb-4 text-red-500 flex items-center justify-center">
+            <AlertOctagon className="w-8 h-8 mr-2" />
+            Système Suspendu
+          </h1>
+          
+          <p className="font-medium text-lg text-neutral-300 mb-6">
+            L'accès à l'administration et au scanner de billets est temporairement verrouillé.
+          </p>
+          
+          <div className="bg-black/50 border border-white/10 rounded-2xl p-4 mb-8">
+            <p className="text-sm text-neutral-400 mb-1">Commissions en attente (15%)</p>
+            <p className="text-3xl font-bold text-white">${amountOwed.toFixed(2)} USD</p>
+          </div>
 
-  const NAV_ITEMS = [
-    { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    { name: "Paiements", href: "/admin/payments", icon: CheckSquare },
-    { name: "Scanner", href: "/admin/scanner", icon: QrCode },
-    { name: "Billets", href: "/admin/tickets", icon: FileText },
-  ];
-
-  return (
-    <div className="min-h-screen bg-black text-white flex flex-col md:flex-row">
-      {/* Mobile Top Bar */}
-      <div className="md:hidden flex items-center justify-between p-4 border-b border-white/5 bg-neutral-900 sticky top-0 z-50">
-        <span className="font-bold text-yellow-500 tracking-wider text-sm">G-AURA ADMIN</span>
-        <button className="text-neutral-400 hover:text-white">
-          <LogOut className="w-5 h-5" />
-        </button>
+          <p className="text-sm text-neutral-500">
+            Veuillez régler le solde des commissions dues au Super Administrateur (compte Koho) pour réactiver automatiquement la plateforme.
+          </p>
+        </div>
       </div>
+    );
+  }
 
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 border-r border-white/5 bg-neutral-900 p-6 min-h-screen">
-        <div className="font-bold text-yellow-500 tracking-wider text-xl mb-12">
-          G-AURA <br/><span className="text-white text-sm font-light">ADMINISTRATION</span>
-        </div>
-        
-        <nav className="flex-1 space-y-2">
-          {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-                  isActive 
-                    ? "bg-yellow-500/10 text-yellow-500 font-semibold" 
-                    : "text-neutral-400 hover:text-white hover:bg-white/5"
-                }`}
-              >
-                <item.icon className="w-5 h-5" />
-                <span>{item.name}</span>
-              </Link>
-            );
-          })}
-        </nav>
-
-        <button className="flex items-center space-x-3 px-4 py-3 text-neutral-400 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all mt-auto">
-          <LogOut className="w-5 h-5" />
-          <span>Déconnexion</span>
-        </button>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 pb-24 md:pb-0 overflow-y-auto">
-        {children}
-      </main>
-
-      {/* Mobile Bottom Navigation (Crucial for Kinshasa mobile-first Admin) */}
-      <nav className="md:hidden fixed bottom-0 w-full border-t border-white/5 bg-neutral-900/90 backdrop-blur-xl z-50 pb-safe">
-        <div className="flex items-center justify-around p-3">
-          {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`flex flex-col items-center justify-center space-y-1 w-16 h-14 rounded-xl transition-all ${
-                  isActive 
-                    ? "text-yellow-500" 
-                    : "text-neutral-500 hover:text-neutral-300"
-                }`}
-              >
-                <item.icon className="w-6 h-6" />
-                <span className="text-[10px] font-medium">{item.name}</span>
-                {isActive && (
-                  <motion.div 
-                    layoutId="activeTab" 
-                    className="absolute bottom-1 w-1 h-1 bg-yellow-500 rounded-full"
-                  />
-                )}
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
-    </div>
-  );
+  // Si tout est en règle, afficher le tableau de bord normal
+  return <AdminLayoutClient>{children}</AdminLayoutClient>;
 }

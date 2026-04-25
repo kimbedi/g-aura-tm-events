@@ -25,3 +25,16 @@ export async function getCommissions() {
 
   return { totalDue, totalPaid, history: data };
 }
+
+export async function checkPlatformLockStatus() {
+  const { totalDue } = await getCommissions();
+  
+  // Limite de dette tolérée (15% impayés)
+  const DEBT_LIMIT_USD = 50; 
+
+  if (totalDue >= DEBT_LIMIT_USD) {
+    return { isLocked: true, amountOwed: totalDue };
+  }
+
+  return { isLocked: false, amountOwed: totalDue };
+}
