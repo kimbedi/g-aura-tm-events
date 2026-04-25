@@ -30,7 +30,7 @@ export default function CheckoutClient({ event, userProfile }: { event: any, use
       window.location.href = `/tickets/${result.qrHash}`;
     } else {
       setIsSubmitting(false);
-      alert("Une erreur est survenue.");
+      alert(result.error || "Une erreur est survenue.");
     }
   };
 

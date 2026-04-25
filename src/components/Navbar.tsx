@@ -51,12 +51,12 @@ export default function Navbar({ user, profile }: NavbarProps) {
 
           {user ? (
             <div className="flex items-center space-x-3">
-              {/* Golden pill button - links to dashboard if admin, my-tickets if user */}
+              {/* Golden pill: admin -> dashboard, regular user -> account */}
               <Link
-                href={isAdmin ? "/admin" : "/tickets"}
+                href={isAdmin ? "/admin" : "/account"}
                 className="flex items-center space-x-2 text-sm font-medium bg-gradient-to-r from-yellow-500 to-yellow-600 text-black px-5 py-2 rounded-full hover:opacity-90 transition-opacity"
               >
-                <LayoutDashboard className="w-4 h-4" />
+                {isAdmin ? <LayoutDashboard className="w-4 h-4" /> : <User className="w-4 h-4" />}
                 <span>{isAdmin ? "Dashboard" : "Mon Compte"}</span>
               </Link>
               {/* Small discreet logout */}
@@ -105,7 +105,7 @@ export default function Navbar({ user, profile }: NavbarProps) {
           <hr className="border-white/10" />
           {user ? (
             <div className="flex flex-col space-y-3">
-              {isAdmin && (
+              {isAdmin ? (
                 <Link
                   href="/admin"
                   className="flex items-center space-x-4 p-4 bg-yellow-500/10 rounded-2xl border border-yellow-500/20 group"
@@ -113,6 +113,15 @@ export default function Navbar({ user, profile }: NavbarProps) {
                 >
                   <LayoutDashboard className="w-6 h-6 text-yellow-500" />
                   <span className="text-lg font-black text-yellow-500 uppercase tracking-tighter">Dashboard</span>
+                </Link>
+              ) : (
+                <Link
+                  href="/account"
+                  className="flex items-center space-x-4 p-4 bg-yellow-500/10 rounded-2xl border border-yellow-500/20 group"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <User className="w-6 h-6 text-yellow-500" />
+                  <span className="text-lg font-black text-yellow-500 uppercase tracking-tighter">Mon Compte</span>
                 </Link>
               )}
               <form action={logout}>

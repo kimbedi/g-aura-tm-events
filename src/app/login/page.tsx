@@ -3,12 +3,17 @@
 import { login } from "@/app/actions/auth";
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Lock, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const searchParams = useSearchParams();
+  // Pages that gate behind auth (e.g. /checkout) bring the user here with
+  // ?next=/their/path so we can send them back after login.
+  const next = searchParams.get("next");
 
   const handleSubmit = async (formData: FormData) => {
     setIsLoading(true);
@@ -38,7 +43,14 @@ export default function LoginPage() {
           </div>
         )}
 
+        {next && (
+          <div className="bg-yellow-500/10 border border-yellow-500/30 text-yellow-200 p-3 rounded-xl text-xs mb-6">
+            Connecte-toi pour finaliser ton achat.
+          </div>
+        )}
+
         <form action={handleSubmit} className="space-y-4">
+          {next && <input type="hidden" name="next" value={next} />}
           <div>
             <label className="block text-sm font-medium text-neutral-400 mb-1">Email</label>
             <input 
@@ -83,7 +95,10 @@ export default function LoginPage() {
 
         <div className="mt-8 text-center text-sm text-neutral-500">
           Vous n'avez pas de compte ?{" "}
-          <Link href="/register" className="text-white hover:text-yellow-500 font-semibold transition-colors">
+          <Link
+            href={next ? `/register?next=${encodeURIComponent(next)}` : "/register"}
+            className="text-white hover:text-yellow-500 font-semibold transition-colors"
+          >
             Créer un accès
           </Link>
         </div>

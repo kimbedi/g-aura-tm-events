@@ -1,5 +1,5 @@
 import { getEventById } from "@/app/actions/events";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import CheckoutClient from "./CheckoutClient";
 import { createClient } from "@/utils/supabase/server";
 
@@ -8,16 +8,23 @@ export default async function CheckoutPage({ params }: { params: Promise<{ id: s
   const event = await getEventById(id);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  
-  let profile = null;
-  if (user) {
-    const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-    profile = data;
-  }
 
   if (!event) {
     notFound();
   }
+
+  // Buying a ticket without an account would create an orphan order
+  // (orders.user_id IS NULL) that the buyer can never retrieve from
+  // /tickets. Force authentication first; bring them back here after login.
+  if (!user) {
+    redirect(`/login?next=/checkout/${id}`);
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
   return (
     <main className="min-h-screen pt-24 pb-12 px-6 max-w-5xl mx-auto">

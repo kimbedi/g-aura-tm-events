@@ -4,11 +4,22 @@ import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+// Only allow ?next= redirects that stay on this site (relative path
+// starting with a single `/`, not `//host` and no protocol). Prevents
+// open-redirect abuse where the post-login URL could be an external site.
+function safeNext(next: string | null): string | null {
+  if (!next) return null;
+  if (!next.startsWith("/")) return null;
+  if (next.startsWith("//")) return null;
+  return next;
+}
+
 export async function login(formData: FormData) {
   const supabase = await createClient();
-  
+
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const nextParam = safeNext(formData.get("next") as string | null);
 
   const { data: { user }, error } = await supabase.auth.signInWithPassword({
     email,
@@ -27,10 +38,23 @@ export async function login(formData: FormData) {
     .single();
 
   revalidatePath("/", "layout");
-  
+
+  // Honour ?next=/checkout/... (set when /checkout redirected here for auth)
+  if (nextParam) {
+    redirect(nextParam);
+  }
+
   const role = profile?.role;
-  if (role === "super_admin" || role === "admin" || role === "manager" || role === "scanner") redirect("/admin");
-  redirect("/my-tickets"); // Regular users go to their tickets
+  if (
+    role === "super_admin" ||
+    role === "admin" ||
+    role === "manager" ||
+    role === "scanner" ||
+    role === "moderator"
+  ) {
+    redirect("/admin");
+  }
+  redirect("/tickets"); // Regular users land on their tickets
 }
 
 export async function signup(formData: FormData) {
