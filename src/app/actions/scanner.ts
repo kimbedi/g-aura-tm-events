@@ -1,50 +1,53 @@
 "use server";
 
+import { createAdminClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
+import { revalidatePath } from "next/cache";
 
-// Cette fonction est appelée UNIQUEMENT pour lire l'état du billet lors du scan
-export async function getTicketInfo(qrHash: string) {
+export async function scanTicket(qrHash: string) {
+  const adminSupabase = createAdminClient();
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  const { data: ticket, error } = await supabase
+  if (!user) throw new Error("Authentification requise");
+
+  // 1. Chercher le billet
+  const { data: ticket, error } = await adminSupabase
     .from("issued_tickets")
-    .select(`
-      *,
-      events ( title, price_usd ),
-      orders!inner ( id, payment_method, payment_reference, status )
-    `)
+    .select("*, events(*), ticket_categories(*)")
     .eq("qr_code_hash", qrHash)
     .single();
 
-  if (error || !ticket) {
-    return { success: false, message: "Billet introuvable ou faux billet." };
+  if (error || !ticket) throw new Error("Billet invalide ou introuvable");
+
+  // 2. Vérifier s'il est déjà utilisé
+  if (ticket.status === 'scanned') {
+    return { 
+      success: false, 
+      message: "BILLET DÉJÀ UTILISÉ", 
+      scannedAt: ticket.scanned_at,
+      event: ticket.events.title,
+      owner: ticket.owner_name
+    };
   }
 
-  return { success: true, ticket };
-}
-
-// Cette fonction est appelée quand l'admin clique sur "Approuver" sur le scanner
-export async function approveAndScanTicket(ticketId: string, orderId: string) {
-  const supabase = await createClient();
-
-  // 1. Mark order as completed
-  const { error: orderError } = await supabase
-    .from("orders")
-    .update({ status: "completed", validated_at: new Date().toISOString() })
-    .eq("id", orderId);
-
-  if (orderError) return { success: false, message: "Erreur validation commande." };
-
-  // 2. Mark ticket as scanned (available is skipped because it's validated at the door)
-  const { error: ticketError } = await supabase
+  // 3. Marquer comme utilisé
+  const { error: updateError } = await adminSupabase
     .from("issued_tickets")
     .update({ 
-      status: "scanned", 
-      scanned_at: new Date().toISOString() 
+      status: 'scanned',
+      scanned_at: new Date().toISOString(),
+      scanned_by: user.id
     })
-    .eq("id", ticketId);
+    .eq("id", ticket.id);
 
-  if (ticketError) return { success: false, message: "Erreur scan billet." };
+  if (updateError) throw new Error("Erreur lors du scan");
 
-  return { success: true };
+  return { 
+    success: true, 
+    message: "ACCÈS VALIDE", 
+    owner: ticket.owner_name,
+    category: ticket.ticket_categories.name,
+    event: ticket.events.title
+  };
 }
