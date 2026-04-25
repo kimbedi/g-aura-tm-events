@@ -50,13 +50,40 @@ body {
   background-color: #facc15; /* yellow-400 */
 }
 
-/* Definitely remove arrows/buttons */
-::-webkit-scrollbar-button {
+/* Definitely remove arrows/buttons (Windows Chrome needs aggressive selectors) */
+::-webkit-scrollbar-button,
+::-webkit-scrollbar-button:start,
+::-webkit-scrollbar-button:end,
+::-webkit-scrollbar-button:single-button,
+::-webkit-scrollbar-button:double-button,
+::-webkit-scrollbar-button:vertical:start:decrement,
+::-webkit-scrollbar-button:vertical:end:increment,
+::-webkit-scrollbar-button:horizontal:start:decrement,
+::-webkit-scrollbar-button:horizontal:end:increment,
+::-webkit-scrollbar-corner {
   display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* Smooth transitions for Firefox */
 * {
   scrollbar-width: thin;
   scrollbar-color: #eab308 transparent;
+}
+
+/* Hide native number-input spinner buttons (appear as ▲▼ next to numeric fields on Windows Chrome) */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Disable native textarea resize handle (the diagonal triangle in the bottom-right corner) */
+textarea {
+  resize: none;
 }

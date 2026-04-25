@@ -179,7 +179,7 @@ export default function AdminEventsPage() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-2xl bg-neutral-900 border border-white/10 rounded-[2rem] p-8 max-h-[90vh] overflow-y-auto"
+              className="relative w-full max-w-2xl bg-neutral-900 border border-white/10 rounded-[2rem] p-5 md:p-8 max-h-[90vh] overflow-y-auto overflow-x-hidden"
             >
               <button 
                 onClick={() => setIsModalOpen(false)}
@@ -281,17 +281,17 @@ export default function AdminEventsPage() {
                   </div>
                   
                   <div className="space-y-3">
-                    <div className="flex items-center space-x-3 px-1 text-[9px] font-black text-neutral-600 uppercase tracking-widest">
-                      <div className="flex-1">Nom de la catégorie</div>
-                      <div className="w-20">Prix ($)</div>
-                      <div className="w-20">Places</div>
-                      {newCategories.length > 1 && <div className="w-4"></div>}
+                    <div className="flex items-center gap-2 px-1 text-[9px] font-black text-neutral-600 uppercase tracking-widest">
+                      <div className="flex-1 min-w-0">Nom de la catégorie</div>
+                      <div className="w-14 md:w-20 text-center">Prix ($)</div>
+                      <div className="w-14 md:w-20 text-center">Places</div>
+                      {newCategories.length > 1 && <div className="w-6 shrink-0"></div>}
                     </div>
                     {newCategories.map((cat, index) => (
-                      <div key={index} className="flex items-center space-x-3">
-                        <input 
-                          placeholder="Nom (VIP...)" 
-                          className="flex-1 bg-black border border-white/10 rounded-lg px-3 py-2 text-xs"
+                      <div key={index} className="flex items-center gap-2">
+                        <input
+                          placeholder="Nom (VIP...)"
+                          className="flex-1 min-w-0 bg-black border border-white/10 rounded-lg px-3 py-2 text-xs"
                           value={cat.name}
                           onChange={(e) => {
                             const updated = [...newCategories];
@@ -299,10 +299,10 @@ export default function AdminEventsPage() {
                             setNewCategories(updated);
                           }}
                         />
-                        <input 
-                          type="number" 
-                          placeholder="Prix $" 
-                          className="w-20 bg-black border border-white/10 rounded-lg px-3 py-2 text-xs"
+                        <input
+                          type="number"
+                          placeholder="$"
+                          className="w-14 md:w-20 bg-black border border-white/10 rounded-lg px-2 md:px-3 py-2 text-xs text-center"
                           value={cat.price_usd}
                           onChange={(e) => {
                             const updated = [...newCategories];
@@ -310,10 +310,10 @@ export default function AdminEventsPage() {
                             setNewCategories(updated);
                           }}
                         />
-                        <input 
-                          type="number" 
-                          placeholder="Place" 
-                          className="w-20 bg-black border border-white/10 rounded-lg px-3 py-2 text-xs"
+                        <input
+                          type="number"
+                          placeholder="Nb"
+                          className="w-14 md:w-20 bg-black border border-white/10 rounded-lg px-2 md:px-3 py-2 text-xs text-center"
                           value={cat.capacity}
                           onChange={(e) => {
                             const updated = [...newCategories];
@@ -322,10 +322,11 @@ export default function AdminEventsPage() {
                           }}
                         />
                         {newCategories.length > 1 && (
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             onClick={() => setNewCategories(newCategories.filter((_, i) => i !== index))}
-                            className="text-red-500 p-1"
+                            className="text-red-500 p-1 shrink-0"
+                            aria-label="Supprimer cette catégorie"
                           >
                             <X className="w-4 h-4" />
                           </button>
