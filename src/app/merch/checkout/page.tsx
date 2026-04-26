@@ -11,7 +11,7 @@ export default function MerchCheckoutPage() {
   const { items, clearCart } = useCartStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -20,7 +20,7 @@ export default function MerchCheckoutPage() {
 
   const handleSubmit = async (formData: FormData) => {
     setIsSubmitting(true);
-    
+
     // In a real app we'd create a specific merch order. For MVP, we simulate the submission
     setTimeout(() => {
       clearCart();
@@ -93,7 +93,7 @@ export default function MerchCheckoutPage() {
                 <div className="font-bold text-lg">${(item.price * item.quantity).toFixed(2)}</div>
               </div>
             ))}
-            
+
             <div className="pt-4 border-t border-white/10 flex justify-between items-center text-xl">
               <span className="font-medium text-neutral-400">Total</span>
               <span className="font-black text-white">${total.toFixed(2)} USD</span>
@@ -108,7 +108,7 @@ export default function MerchCheckoutPage() {
             Paiement Mobile
           </h2>
           <div className="bg-neutral-900 border border-white/5 rounded-3xl p-6 md:p-8 relative overflow-hidden">
-            
+
             <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-6 mb-8 text-center">
               <div className="flex justify-center space-x-4 mb-4">
                 <Smartphone className="w-8 h-8 text-yellow-500" />
@@ -116,8 +116,8 @@ export default function MerchCheckoutPage() {
               <p className="text-sm text-neutral-300 mb-4">
                 Envoyez exactement <span className="font-bold text-white">${total.toFixed(2)}</span> au numéro officiel de la boutique via Airtel Money :
               </p>
-              <div className="text-3xl font-mono tracking-wider font-bold mb-6 text-yellow-500">+243 99 300 2546</div>
-              
+              <div className="text-3xl font-mono tracking-wider font-bold mb-6 text-yellow-500">+243 837 264 005</div>
+
               <form action={handleSubmit}>
                 <label className="block text-sm font-medium text-neutral-400 mb-2 text-left">
                   Code de référence de la transaction (SMS)
@@ -129,7 +129,7 @@ export default function MerchCheckoutPage() {
                   placeholder="Ex: 8X9Y7Z6W"
                   className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors mb-6"
                 />
-                
+
                 <label className="block text-sm font-medium text-neutral-400 mb-2 text-left mt-4">
                   Votre Numéro de Téléphone
                 </label>
