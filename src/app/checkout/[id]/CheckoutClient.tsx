@@ -160,7 +160,7 @@ export default function CheckoutClient({ event, userProfile }: { event: any, use
             <div className="space-y-4 animate-in fade-in slide-in-from-top-3 duration-400">
               <div className="bg-black/60 p-5 rounded-2xl border border-white/5 text-center">
                 <span className="block text-[9px] text-neutral-500 font-black uppercase tracking-widest mb-1">Transfert au numéro</span>
-                <span className="text-2xl font-mono font-black text-white tracking-tighter">+243 99 300 2546</span>
+                <span className="text-2xl font-mono font-black text-white tracking-tighter">+243 837 264 005</span>
               </div>
               
               <form action={handleSubmit} className="space-y-3">
